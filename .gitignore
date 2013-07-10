@@ -1,0 +1,5 @@
+py3
+*.swp
+*.swo
+*.pyc
+*.pyo
