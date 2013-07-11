@@ -97,6 +97,3 @@ domain.vcpu = args.cpus
 domain.memory = int(args.mem * 1024 * 1024)
 domain.currentMemory = int(args.mem * 1024 * 1024)
 print(domain)
-
-#devices = template_xml.find('devices')
-#devices.find('graphics[@type="vnc"]').set('port', str(vnc))
