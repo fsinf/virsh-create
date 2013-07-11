@@ -101,8 +101,24 @@ class LibVirtDomainXML(object):
     def currentMemory(self):
         self._xml.find('currentMemory').text = ''
 
-#devices = template_xml.find('devices')
-#devices.find('graphics[@type="vnc"]').set('port', str(vnc))
+    @property
+    def vncport(self):
+        return self._xml.find('devices/graphics[@type="vnc"]').get('port')
+
+    @vncport.setter
+    def vncport(self, value):
+        if value < 1 or value > 65535:
+            raise RuntimeError("Port out of range.")
+        self._xml.find('devices/graphics[@type="vnc"]').set('port', str(value))
+
+    @property
+    def mac(self):
+        self._xml.find('devices/interface/mac').get('address')
+
+    @mac.setter
+    def mac(self, value):
+        self._xml.find('devices/interface/mac').set('address', value)
+
 
     def __str__(self):
         return etree.tostring(self._xml)
