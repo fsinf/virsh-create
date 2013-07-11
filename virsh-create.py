@@ -41,7 +41,8 @@ args = parser.parse_args()
 lv_name = 'vm_%s' % args.name
 ipv4 = '128.130.95.%s' % args.id
 ipv6 = '2001:629:3200:95::1:%s' % args.id
-vnc = '59%s' % args.id
+mac = '00:25:90:2d:%s:%s' % (args.id, args.id)
+vncport = int('59%s' % args.id)
 
 # do some sanity checks:
 if os.getuid() != 0:  # check if we are root
@@ -96,4 +97,9 @@ domain.description = args.desc
 domain.vcpu = args.cpus
 domain.memory = int(args.mem * 1024 * 1024)
 domain.currentMemory = int(args.mem * 1024 * 1024)
+domain.vncport = vncport
+domain.mac = mac
+
+vf = conn.getVirtualFunction()
+
 print(domain)
