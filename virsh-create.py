@@ -89,23 +89,14 @@ if err_lvs:
 ### COPY TEMPLATE ###
 #####################
 # finally get the full xml of the template
-print('virsh dumpxml %s' % args.frm)
-dumpxml = Popen(['virsh', 'dumpxml', args.frm], stdout=PIPE, stderr=PIPE)
-stdout, stderr = dumpxml.communicate()
-if dumpxml.returncode != 0:
-    print("Error: exit code %s: %s" % (dumpxml.returncode, stderr))
+domain = template.copy()
+domain.name = args.name
+domain.uuid = ''
+domain.description = args.desc
+domain.vcpu = args.cpus
+domain.memory = int(args.mem * 1024 * 1024)
+domain.currentMemory = int(args.mem * 1024 * 1024)
+print(domain)
 
-root = etree.fromstring(stdout)
-root.find('name').text = args.name
-root.find('uuid').text = ''
-root.find('description').text = args.desc
-root.find('vcpu').text = str(args.cpus)
-
-root.find('memory').text = str(int(args.mem * 1024 * 1024))
-root.find('currentMemory').text = str(int(args.mem * 1024 * 1024))
-
-devices = root.find('devices')
-
-devices.find('graphics[@type="vnc"]').set('port', str(vnc))
-
-print(etree.tostring(root))
+#devices = template_xml.find('devices')
+#devices.find('graphics[@type="vnc"]').set('port', str(vnc))
