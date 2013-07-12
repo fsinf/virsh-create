@@ -1,3 +1,5 @@
+import copy
+
 from lxml import etree
 
 class LibVirtDomain(object):
@@ -5,6 +7,7 @@ class LibVirtDomain(object):
         assert name is not None or id is not None, "give either name or id"
         self._conn = conn
         self._domain = conn.getRawDomain(name=name, id=id)
+        self._xml = None
 
     @property
     def name(self):
@@ -20,7 +23,19 @@ class LibVirtDomain(object):
 
     @property
     def xml(self):
-        return etree.fromstring(self._domain.XMLDesc(0))
+        if self._xml is None:
+            self._xml = etree.fromstring(self._domain.XMLDesc(0))
+
+        return copy.deepcopy(self._xml)
+
+    @property
+    def virtual_function(self):
+        elem = self.xml.find('devices/interface/address')
+        domain = int(elem.get('domain'))
+        bus = int(elem.get('bus'))
+        slot = int(elem.get('slot'))
+        func = int(elem.get('func'))
+        return domain, bus, slot, func
 
     def copy(self):
         return LibVirtDomainXML(self.xml)
