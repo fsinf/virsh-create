@@ -2,13 +2,14 @@ import six
 
 from libvirtpy.error import ConnectionError
 from libvirtpy.error import DomainLookupError
+from libvirtpy.constants import AVAILABLE_VIRTUAL_FUNCTIONS
 from libvirtpy.domain import LibVirtDomain
 from libvirtpy._libvirt import libvirt
 
 
 class LibVirtConnection(object):
     def __init__(self, name=None):
-        self._conn = libvirt.openReadOnly(name)
+        self._conn = libvirt.open(name)
         if self._conn is None:
             raise ConnectionError('Failed to open connection to the hypervisor')
 
@@ -58,7 +59,17 @@ class LibVirtConnection(object):
         self._fetched_all = True
         return list(six.itervalues(self._name_cache))
 
+    def getVirtualFunction(self):
+        used_vfs = set()
+        for domain in self.getAllDomains():
+            vf = domain.virtual_function
+            if vf is not None:
+                used_vfs.add(vf)
 
+        available = AVAILABLE_VIRTUAL_FUNCTIONS - used_vfs
+        return list(available)[0]
 
+    def loadXML(self, domain):
+        self._conn.defineXML(str(domain))
 
 conn = LibVirtConnection(None)
