@@ -30,12 +30,22 @@ class LibVirtDomain(object):
 
     @property
     def virtual_function(self):
-        elem = self.xml.find('devices/interface/address')
-        domain = int(elem.get('domain'))
-        bus = int(elem.get('bus'))
-        slot = int(elem.get('slot'))
-        func = int(elem.get('func'))
+        elem = self.xml.find('devices/interface/source/address')
+        if elem is None:
+            return None
+
+        domain = int(elem.get('domain'), 16)
+        bus = int(elem.get('bus'), 16)
+        slot = int(elem.get('slot'), 16)
+        func = int(elem.get('function'), 16)
         return domain, bus, slot, func
+
+    def getDiskPaths(self):
+        for elem in self.xml.findall('devices/disk[@type="block"]'):
+            source = elem.find('source')
+            if source is None:
+                continue
+            yield source.get('dev')
 
     def copy(self):
         return LibVirtDomainXML(self.xml)
@@ -134,6 +144,28 @@ class LibVirtDomainXML(object):
     def mac(self, value):
         self._xml.find('devices/interface/mac').set('address', value)
 
+    @property
+    def virtual_function(self):
+        elem = self._xml.find('devices/interface/source/address')
+        if elem is None:
+            return None
+
+        domain = int(elem.get('domain'), 16)
+        bus = int(elem.get('bus'), 16)
+        slot = int(elem.get('slot'), 16)
+        func = int(elem.get('function'), 16)
+        return domain, bus, slot, func
+
+    def setVirtualFunction(self, domain, bus, slot, func):
+        elem = self._xml.find('devices/interface/source/address')
+        elem.set('domain', hex(domain))
+        elem.set('bus', hex(bus))
+        elem.set('slot', hex(slot))
+        elem.set('function', hex(func))
+
+    def replaceDisk(self, old_path, new_path):
+        elem = self._xml.find('devices/disk/source[@dev="%s"]' % old_path)
+        elem.set('dev', new_path)
 
     def __str__(self):
         return etree.tostring(self._xml)
