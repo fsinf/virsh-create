@@ -3,10 +3,13 @@ import copy
 from lxml import etree
 
 class LibVirtDomain(object):
-    def __init__(self, conn, name=None, id=None):
-        assert name is not None or id is not None, "give either name or id"
+    def __init__(self, conn, name=None, id=None, domain=None):
+        assert name is not None or id is not None or domain is not None
         self._conn = conn
-        self._domain = conn.getRawDomain(name=name, id=id)
+        if domain is None:
+            self._domain = conn.getRawDomain(name=name, id=id)
+        else:
+            self._domain = domain
         self._xml = None
 
     @property
@@ -16,6 +19,11 @@ class LibVirtDomain(object):
     @property
     def id(self):
         return self._domain.ID()
+
+    @property
+    def domain_id(self):
+        vncport = self.xml.find('devices/graphics[@type="vnc"]').get('port')
+        return int(vncport) - 5900
 
     @property
     def status(self):
@@ -46,6 +54,14 @@ class LibVirtDomain(object):
             if source is None:
                 continue
             yield source.get('dev')
+
+    def getBootDisk(self):
+        # NOTE: according to documentation, the xml description sorts disks by
+        # boot device priority. So the first disk is the boot-disk.
+
+        # We convert returned value to str because for some reason the script
+        # segfaults (!) otherwise.
+        return str(self.xml.find('devices/disk[@type="block"]/source').get('dev'))
 
     def copy(self):
         return LibVirtDomainXML(self.xml)
