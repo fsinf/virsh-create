@@ -210,12 +210,13 @@ f.close()
 ex(['chmod', 'a+rx', path])
 
 ex(['rm'] + glob.glob('etc/ssh/ssh_host_*'))
-ex(['chroot', '.', 'dpkg-reconfigure openssh-server'])
+ex(['chroot', target, 'dpkg-reconfigure openssh-server'])
 ex(['rm', path])
 
 ###############
 ### CLEANUP ###
 ###############
+os.chdir('/root')
 for mount in reversed(mounted):
     ex(['umount', mount])
 ex(['vgchange', '-a', 'n', root_vg])
