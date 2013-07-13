@@ -210,7 +210,7 @@ f.close()
 ex(['chmod', 'a+rx', path])
 
 ex(['rm'] + glob.glob('etc/ssh/ssh_host_*'))
-ex(['chroot', target, 'dpkg-reconfigure openssh-server'])
+ex(['chroot', target, 'dpkg-reconfigure', 'openssh-server'])
 ex(['rm', path])
 
 ###############
