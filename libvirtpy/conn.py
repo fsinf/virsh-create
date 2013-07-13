@@ -69,7 +69,8 @@ class LibVirtConnection(object):
         available = AVAILABLE_VIRTUAL_FUNCTIONS - used_vfs
         return list(available)[0]
 
-    def loadXML(self, domain):
-        self._conn.defineXML(str(domain))
+    def loadXML(self, domain_xml):
+        domain = self._conn.defineXML(str(domain_xml))
+        return LibVirtDomain(self, domain=domain)
 
 conn = LibVirtConnection(None)
