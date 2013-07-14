@@ -83,6 +83,11 @@ template_id = template.domain_id  # i.e. 89.
 if args.name in [d.name for d in conn.getAllDomains()]:
     print("Error: Domain already defined.")
     sys.exit(1)
+bootdisk_path = '/dev/%s' % template.getBootTarget()
+
+if os.path.exists(bootdisk_path):
+    print("Error: %s already exists" % bootdisk_path)
+    sys.exit(1)
 
 ##########################
 ### LVM SANITIY CHECKS ###
@@ -180,11 +185,29 @@ for dir in ['boot', 'home', 'usr', 'var', 'tmp']:
         ex(['mount', dev, mytarget])
         mounted.append(mytarget)
 
+# mount dev and proc
+ex(['mount', '-o', 'bind', '/dev/', '%s/dev/' % target])
+ex(['mount', '-o', 'bind', '/dev/pts', '%s/dev/pts' % target])
+ex(['mount', '-o', 'bind', '/proc/', '%s/proc/' % target])
+ex(['mount', '-o', 'bind', '/sys/', '%s/sys/' % target])
+mounted += ['%s/proc' % target, '%s/dev' % target, '%s/dev/pts' % target,
+            '%s/sys' % target]
+
 #########################
 ### MODIFY FILESYSTEM ###
 #########################
 os.chdir(target)
 sed_ex = 's/%s/%s/' % (args.frm, args.name)
+
+# create a file that disables restarting of services:
+policy_d = 'usr/sbin/policy-rc.d'
+f = open(policy_d, 'w')
+f.write("#!/bin/sh\nexit 101")
+f.close()
+ex(['chmod', 'a+rx', policy_d])
+
+# create symlink for bootdisk named like it is in the VM
+ex(['ln', '-s', bootdisk, bootdisk_path])
 
 # update hostname
 ex(['sed', '-i', sed_ex, 'etc/hostname'])
@@ -202,20 +225,25 @@ ex(['sed', '-i', 's/2001:629:3200:95::1:%s/2001:629:3200:95::1:%s/g'
 ex(['sed', '-i', 's/:%s/:%s/g' % (template_id, args.id), 'etc/udev/rules.d/70-persistent-net.rules'])
 
 # reconfigure ssh key
-# create a file that disables restarting of services:
-path = 'usr/sbin/policy-rc.d'
-f = open(path, 'w')
-f.write("#!/bin/sh\nexit 101")
-f.close()
-ex(['chmod', 'a+rx', path])
-
 ex(['rm'] + glob.glob('etc/ssh/ssh_host_*'))
 ex(['chroot', target, 'dpkg-reconfigure', 'openssh-server'])
-ex(['rm', path])
+
+# update grub
+f = open('boot/grub/device.map', 'w')
+f.write("(hd0)\t%s\n" % bootdisk_path)
+f.close()
+ex(['chroot', target, 'update-grub'])
+ex(['chroot', target, 'update-initramfs'])
+
+# update system
+ex(['chroot', target, 'apt-get', 'update'])
+ex(['chroot', target, 'apt-get', '-y', 'dist-upgrade'])
 
 ###############
 ### CLEANUP ###
 ###############
+ex(['rm', bootdisk_path])  # symlink to mimik boot disk inside vm
+ex(['rm', policy_d])
 os.chdir('/root')
 for mount in reversed(mounted):
     ex(['umount', mount])
