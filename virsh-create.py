@@ -12,7 +12,6 @@ from subprocess import PIPE
 from subprocess import Popen
 
 from lvm2py import LVM
-from lxml import etree
 
 from libvirtpy.conn import conn
 from libvirtpy.constants import DOMAIN_STATUS_SHUTOFF
@@ -141,7 +140,7 @@ for path in template.getDiskPaths():
     new_lv_name = lv_name.replace(template.name, args.name)
     new_path = path.replace(lv_name, new_lv_name)
     if (new_lv_name, vg_name) in lvs:
-        print("Error: LV %s in VG %s is already defined." % (lv_new_name, vg_name))
+        print("Error: LV %s in VG %s is already defined." % (new_lv_name, vg_name))
         sys.exit(1)
     print('Copying %s --> %s' % (path, new_path))
 
