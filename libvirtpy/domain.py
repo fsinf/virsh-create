@@ -182,6 +182,14 @@ class LibVirtDomainXML(object):
         elem.set('slot', hex(slot))
         elem.set('function', hex(func))
 
+    def fix_macs(self, id):
+        print('fix macs!')
+        for elem in self._xml.findall('devices/interface/mac'):
+            fields = elem.get('address').split(':')
+            fields[-1] = str(id)
+            fields[-2] = str(id)
+            elem.set('address', ':'.join(fields))
+
     def replaceDisk(self, old_path, new_path):
         elem = self._xml.find('devices/disk/source[@dev="%s"]' % old_path)
         elem.set('dev', new_path)
