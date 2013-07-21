@@ -57,7 +57,6 @@ args = parser.parse_args()
 lv_name = 'vm_%s' % args.name
 ipv4 = '128.130.95.%s' % args.id
 ipv6 = '2001:629:3200:95::1:%s' % args.id
-mac = '00:25:90:2d:%s:%s' % (args.id, args.id)
 vncport = int('59%s' % args.id)
 target = '/target'
 
@@ -123,10 +122,11 @@ domain.vcpu = args.cpus
 domain.memory = int(args.mem * 1024 * 1024)
 domain.currentMemory = int(args.mem * 1024 * 1024)
 domain.vncport = vncport
-domain.mac = mac
+domain.fix_macs(args.id)
 
-vf = conn.getVirtualFunction()
-domain.setVirtualFunction(*vf)
+# 2013-07-21: Virtual Functions are currently disabled
+#vf = conn.getVirtualFunction()
+#domain.setVirtualFunction(*vf)
 
 lv_mapping = {}
 for path in template.getDiskPaths():
@@ -217,11 +217,13 @@ ex(['sed', '-i', sed_ex, 'etc/hosts'])
 ex(['sed', '-i', sed_ex, 'etc/fstab'])
 
 # update IP-address
-#etc/network/interfaces:
+interfaces = 'etc/network/interfaces'
 ex(['sed', '-i', 's/128.130.95.%s/128.130.95.%s/g' % (template_id, args.id),
-    'etc/network/interfaces'])
+    interfaces])
+ex(['sed', '-i', 's/192.168.1.%s/192.168.1.%s/g' % (template_id, args.id),
+    interfaces])
 ex(['sed', '-i', 's/2001:629:3200:95::1:%s/2001:629:3200:95::1:%s/g'
-    % (template_id, args.id), 'etc/network/interfaces'])
+    % (template_id, args.id), interfaces])
 
 # update MAC-address
 ex(['sed', '-i', 's/:%s/:%s/g' % (template_id, args.id), 'etc/udev/rules.d/70-persistent-net.rules'])
