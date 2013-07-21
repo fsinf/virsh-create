@@ -17,7 +17,7 @@ from lxml import etree
 from libvirtpy.conn import conn
 from libvirtpy.constants import DOMAIN_STATUS_SHUTOFF
 
-def ex(cmd, quiet=False):
+def ex(cmd, quiet=False, ignore_errors=False):
     if not quiet:
         print(' '.join(cmd))
 
@@ -26,8 +26,11 @@ def ex(cmd, quiet=False):
     status = p.returncode
 
     if status != 0:
-        print('Error: %s returned status code %s: %s' % (cmd[0], status, err))
-        sys.exit(1)
+        if ignore_errors:
+            print('Error: %s returned status code %s: %s (IGNORED)' % (cmd[0], status, err))
+        else:
+            print('Error: %s returned status code %s: %s' % (cmd[0], status, err))
+            sys.exit(1)
     return out, err
 
 
@@ -233,7 +236,13 @@ f = open('boot/grub/device.map', 'w')
 f.write("(hd0)\t%s\n" % bootdisk_path)
 f.close()
 ex(['chroot', target, 'update-grub'])
-ex(['chroot', target, 'update-initramfs'])
+ex(['chroot', target, 'update-initramfs', '-u', '-k', 'all'])
+ex(['chroot', target, 'grub-install', '/dev/mapper/vm_test-boot'], ignore_errors=True)
+ex(['chroot', target, 'sync'])
+ex(['chroot', target, 'sync'])
+ex(['chroot', target, 'grub-setup', '(hd0)'])
+ex(['chroot', target, 'sync'])
+ex(['chroot', target, 'sync'])
 
 # update system
 ex(['chroot', target, 'apt-get', 'update'])
