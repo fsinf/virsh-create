@@ -225,6 +225,10 @@ ex(['sed', '-i', 's/192.168.1.%s/192.168.1.%s/g' % (template_id, args.id),
 ex(['sed', '-i', 's/2001:629:3200:95::1:%s/2001:629:3200:95::1:%s/g'
     % (template_id, args.id), interfaces])
 
+# update munin config-file:
+ex(['sed', '-i', 's/192.168.1.%s/192.168.1.%s/g' % (template_id, args.id),
+    'etc/munin/munin-node.conf'])
+
 # update MAC-address
 ex(['sed', '-i', 's/:%s/:%s/g' % (template_id, args.id), 'etc/udev/rules.d/70-persistent-net.rules'])
 
