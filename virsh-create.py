@@ -171,8 +171,7 @@ for path in template.getDiskPaths():
     # replace disk in template
     domain.replaceDisk(path, new_path)
 
-    print('# Copy disk')
-    ex(['dd', 'if=%s' % path, 'of=%s' % new_path, 'bs=4M'])
+    ex(['dd', 'if=%s' % path, 'of=%s' % new_path, 'bs=4M'], desc='Copy disc')
 
 print('Load modified xml definition')
 domain = conn.loadXML(domain)
@@ -185,11 +184,9 @@ root_vg = 'vm_%s' % args.name
 os.makedirs(target)
 mounted = []
 
-print('# Discover partitions on bootdisk')
-ex(['kpartx', '-a', bootdisk])
+ex(['kpartx', '-a', bootdisk], desc='Discover partitions on bootdisk')
 
-print('# Rename volume group:')
-ex(['vgrename', 'vm_%s' % args.frm, root_vg])
+ex(['vgrename', 'vm_%s' % args.frm, root_vg], desc='Rename volume group')
 
 print('# Acvivate volume group:')
 ex(['vgchange', '-a', 'y', root_vg])
