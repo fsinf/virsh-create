@@ -16,23 +16,6 @@ from lvm2py import LVM
 from libvirtpy.conn import conn
 from libvirtpy.constants import DOMAIN_STATUS_SHUTOFF
 
-def ex(cmd, quiet=False, ignore_errors=False):
-    if not quiet:
-        print(' '.join(cmd))
-
-    p = Popen(cmd, stdout=PIPE, stderr=PIPE)
-    out, err = p.communicate()
-    status = p.returncode
-
-    if status != 0:
-        if ignore_errors:
-            print('Error: %s returned status code %s: %s (IGNORED)' % (cmd[0], status, err))
-        else:
-            print('Error: %s returned status code %s: %s' % (cmd[0], status, err))
-            sys.exit(1)
-    return out, err
-
-
 LV = namedtuple('lv', ['name', 'vg', 'attr', 'size', 'pool', 'origin', 'data',
                 'move', 'log', 'copy', 'convert'])
 
@@ -53,6 +36,9 @@ parser.add_argument(
     'id', type=int, help="Id of the virtual machine. Used for VNC-port, MAC-address and IP")
 args = parser.parse_args()
 
+###########################
+### Variable definition ###
+###########################
 # define some variables
 lv_name = 'vm_%s' % args.name
 ipv4 = '128.130.95.%s' % args.id
@@ -61,6 +47,26 @@ ipv4_priv = '192.168.1.%s' % args.id
 ipv6_priv = 'fc00::%s' % args.id
 vncport = int('59%s' % args.id)
 target = '/target'
+
+###########################
+### Function definition ###
+###########################
+def ex(cmd, quiet=False, ignore_errors=False, desc=''):
+    """Execute a command"""
+    if not quiet:
+        print(' '.join(cmd))
+
+    p = Popen(cmd, stdout=PIPE, stderr=PIPE)
+    out, err = p.communicate()
+    status = p.returncode
+
+    if status != 0:
+        if ignore_errors:
+            print('Error: %s returned status code %s: %s (IGNORED)' % (cmd[0], status, err))
+        else:
+            print('Error: %s returned status code %s: %s' % (cmd[0], status, err))
+            sys.exit(1)
+    return out, err
 
 ##########################
 ### BASIC SANITY TESTS ###
