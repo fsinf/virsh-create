@@ -30,6 +30,8 @@ parser.add_argument('--mem', default=1.0, type=float,
                     help="Amount of Memory in GigaByte (Default: %(default)s))")
 parser.add_argument('--cpus', default=1, type=int,
                     help="Number of CPUs (Default: %(default)s)")
+parser.add_argument('--verbose', default=False, action="store_true",
+                    help="Print executed commands to stdout.")
 
 parser.add_argument('name', help="Name of the new virtual machine")
 parser.add_argument(
@@ -53,8 +55,11 @@ target = '/target'
 ###########################
 def ex(cmd, quiet=False, ignore_errors=False, desc=''):
     """Execute a command"""
-    if not quiet:
-        print(' '.join(cmd))
+    if not quiet and args.verbose:
+        cl = ' '.join(cmd)
+        if desc:
+            cl += '  # %s' % desc
+        print(cl)
 
     p = Popen(cmd, stdout=PIPE, stderr=PIPE)
     out, err = p.communicate()
