@@ -232,9 +232,9 @@ ex(['sed', '-i', 's/192.168.1.%s/%s/g' % (template_id, ipv4_priv),
 
 # update cgabackup:
 ex(['sed', '-i', 's/backup-cga-host/backup-cga-%s/' % args.name,
-    '/etc/cgabackup/client.conf'])
+    'etc/cgabackup/client.conf'])
 ex(['sed', '-i', 's/\/backup\/cga\/host/\/backup\/cga\/%s/' % args.name,
-    '/etc/cgabackup/client.conf'])
+    'etc/cgabackup/client.conf'])
 
 # update MAC-address
 ex(['sed', '-i', 's/:%s/:%s/g' % (template_id, args.id), 'etc/udev/rules.d/70-persistent-net.rules'])
@@ -261,9 +261,9 @@ ex(['chroot', target, 'apt-get', 'update'])
 ex(['chroot', target, 'apt-get', '-y', 'dist-upgrade'])
 
 # generate SSH key
-ex(['ssh-keygen', '-t', 'rsa', '-q', '-N', '', '-f', '.ssh/id_rsa', '-O',
-    'no-x11-forwarding', '-O',
-    'source-address=%s,%s,%s,%s' % (ipv4, ipv6, ipv4_priv, ipv6_priv)])
+ex(['chroot', 'target', 'ssh-keygen', '-t', 'rsa', '-q', '-N', '',
+    '-f', '.ssh/id_rsa', '-O', 'no-x11-forwarding',
+    '-O', 'source-address=%s,%s,%s,%s' % (ipv4, ipv6, ipv4_priv, ipv6_priv)])
 
 ###############
 ### CLEANUP ###
