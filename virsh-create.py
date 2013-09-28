@@ -73,6 +73,10 @@ def ex(cmd, quiet=False, ignore_errors=False, desc=''):
             sys.exit(1)
     return out, err
 
+def chroot(cmd, quiet=False, ignore_errors=False, desc=''):
+    cmd = ['chroot', target, ] + cmd
+    ex(cmd, quiet=quiet, ignore_errors=ignore_errors, desc=desc)
+
 ##########################
 ### BASIC SANITY TESTS ###
 ##########################
