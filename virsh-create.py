@@ -262,7 +262,7 @@ ex(['chroot', target, 'apt-get', '-y', 'dist-upgrade'])
 
 # generate SSH key
 ex(['chroot', target, 'ssh-keygen', '-t', 'rsa', '-q', '-N', '',
-    '-f', '.ssh/id_rsa', '-O', 'no-x11-forwarding',
+    '-f', '/root/.ssh/id_rsa', '-O', 'no-x11-forwarding',
     '-O', 'source-address=%s,%s,%s,%s' % (ipv4, ipv6, ipv4_priv, ipv6_priv)])
 
 ###############
