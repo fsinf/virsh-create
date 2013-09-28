@@ -224,6 +224,8 @@ ex(['sed', '-i', 's/192.168.1.%s/192.168.1.%s/g' % (template_id, args.id),
     interfaces])
 ex(['sed', '-i', 's/2001:629:3200:95::1:%s/2001:629:3200:95::1:%s/g'
     % (template_id, args.id), interfaces])
+ex(['sed', '-i', 's/fc00::%s/fc00::%s/g'
+    % (template_id, args.id), interfaces])
 
 # update munin config-file:
 ex(['sed', '-i', 's/192.168.1.%s/192.168.1.%s/g' % (template_id, args.id),
