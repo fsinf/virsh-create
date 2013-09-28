@@ -57,6 +57,8 @@ args = parser.parse_args()
 lv_name = 'vm_%s' % args.name
 ipv4 = '128.130.95.%s' % args.id
 ipv6 = '2001:629:3200:95::1:%s' % args.id
+ipv4_priv = '192.168.1.%s' % args.id
+ipv6_priv = 'fc00::%s' % args.id
 vncport = int('59%s' % args.id)
 target = '/target'
 
@@ -218,17 +220,14 @@ ex(['sed', '-i', sed_ex, 'etc/fstab'])
 
 # update IP-address
 interfaces = 'etc/network/interfaces'
-ex(['sed', '-i', 's/128.130.95.%s/128.130.95.%s/g' % (template_id, args.id),
+ex(['sed', '-i', 's/128.130.95.%s/%s/g' % (template_id, ipv4), interfaces])
+ex(['sed', '-i', 's/192.168.1.%s/%s/g' % (template_id, ipv4_priv), interfaces])
+ex(['sed', '-i', 's/2001:629:3200:95::1:%s/%s/g' % (template_id, ipv6),
     interfaces])
-ex(['sed', '-i', 's/192.168.1.%s/192.168.1.%s/g' % (template_id, args.id),
-    interfaces])
-ex(['sed', '-i', 's/2001:629:3200:95::1:%s/2001:629:3200:95::1:%s/g'
-    % (template_id, args.id), interfaces])
-ex(['sed', '-i', 's/fc00::%s/fc00::%s/g'
-    % (template_id, args.id), interfaces])
+ex(['sed', '-i', 's/fc00::%s/%s/g' % (template_id, ipv6_priv), interfaces])
 
 # update munin config-file:
-ex(['sed', '-i', 's/192.168.1.%s/192.168.1.%s/g' % (template_id, args.id),
+ex(['sed', '-i', 's/192.168.1.%s/%s/g' % (template_id, ipv4_priv),
     'etc/munin/munin-node.conf'])
 
 # update cgabackup:
