@@ -64,9 +64,6 @@ class LibVirtDomain(LibVirtBase):
                 continue
             yield source.get('dev')
 
-    def getBootTarget(self):
-        return str(self.xml.find('devices/disk[@type="block"]/target').get('dev'))
-
     def copy(self):
         return LibVirtDomainXML(self.xml)
 

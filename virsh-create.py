@@ -72,7 +72,7 @@ template_id = template.domain_id  # i.e. 89.
 if args.name in [d.name for d in conn.getAllDomains()]:
     print("Error: Domain already defined.")
     sys.exit(1)
-bootdisk_path = '/dev/%s' % template.getBootTarget()
+bootdisk_path = '/dev/%s' % template.getBootDisk()  # i.e. /dev/vda
 
 if os.path.exists(bootdisk_path):
     print("Error: %s already exists" % bootdisk_path)
