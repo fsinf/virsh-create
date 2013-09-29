@@ -7,19 +7,13 @@ import glob
 import os
 import sys
 
-from collections import namedtuple
-
-from lvm2py import LVM
-
 from libvirtpy.conn import conn
 from libvirtpy.constants import DOMAIN_STATUS_SHUTOFF
 
+from util import lvm
 from util import settings
 from util.cli import ex
 from util.cli import chroot
-
-LV = namedtuple('lv', ['name', 'vg', 'attr', 'size', 'pool', 'origin', 'data',
-                'move', 'log', 'copy', 'convert'])
 
 parser = argparse.ArgumentParser()
 # optional arguments:
@@ -87,22 +81,19 @@ if os.path.exists(bootdisk_path):
 ##########################
 ### LVM SANITIY CHECKS ###
 ##########################
-lvm = LVM()  # init
-
 # get a list of logical volumes (so we can verify it doesn't exist yet)
-stdout, stderr = ex(['lvs', '--noheadings', '--separator', ';', '--units=b'], quiet=True)
+lvs = {(lv.vg, lv.name): lv for lv in lvm.lvs()}  # list of all logical volumes
 
-lvs = {}  # list of all logical volumes
-for line in stdout.split():
-    lv = LV(*line.strip().split(';'))
-    lvs[(lv.name, lv.vg)] = lv
+# Create mappings from template LVMs to target LVMs, check if they exist
+lv_mapping = {}
+for path in template.getDiskPaths():
+    lv = lvm.lvdisplay(path)
 
-# see if the desired logical volume name is already defined anywhere
-err_lvs = [lv for lv in lvs if lv[0] == lv_name]
-if err_lvs:
-    for lv, vg in err_lvs:
-        print("Error: %s already exists on VG %s" % (lv_name, vg))
-    sys.exit(1)
+    new_lv_name = lv.name.replace(template.name, args.name)
+    if (lv.vg, new_lv_name) in lvs:
+        print("Error: LV %s in VG %s is already defined." % (new_lv_name, lv.vg))
+        sys.exit(1)
+    lv_mapping[(lv.vg, lv.name)] = (lv.vg, new_lv_name)
 
 #####################
 ### COPY TEMPLATE ###
@@ -122,70 +113,51 @@ domain.fix_macs(args.id)
 #vf = conn.getVirtualFunction()
 #domain.setVirtualFunction(*vf)
 
-lv_mapping = {}
+##################
+### Copy disks ###
+##################
 for path in template.getDiskPaths():
-
-    # get LV and VG from path
-    stdout, stderr = ex(['lvdisplay', '-C', path], quiet=True)
-    line = stdout.split("\n")[1].strip()
-    lv_name, vg_name = line.split()[:2]
-
-    # compute/test new LV-name
-    new_lv_name = lv_name.replace(template.name, args.name)
-    new_path = path.replace(lv_name, new_lv_name)
-    if (new_lv_name, vg_name) in lvs:
-        print("Error: LV %s in VG %s is already defined." % (new_lv_name, vg_name))
-        sys.exit(1)
-    print('Copying %s --> %s' % (path, new_path))
-
-    # get vg/lv from lvm, create new lv:
-    vg = lvm.get_vg(vg_name, 'w')
-    lv = vg.get_lv(lv_name)
-    print(vg, lv, lv.size())
-    lv_size = int(lv.size('B'))
-    print('Create LV %s on VG %s' % (new_lv_name, vg_name))
-    new_lv = vg.create_lv(new_lv_name, lv_size, 'B')
+    # create logical volume
+    lv = lvm.lvdisplay(path)
+    new_vg, new_lv = lv_mapping[(lv.vg, lv.name)]
+    new_path = path.replace(lv.name, new_lv)
+    lvm.lvcreate(new_vg, new_lv, lv.size)
 
     # replace disk in template
     domain.replaceDisk(path, new_path)
 
+    # copy data
     ex(['dd', 'if=%s' % path, 'of=%s' % new_path, 'bs=4M'], desc='Copy disc')
-
-print('Load modified xml definition')
-domain = conn.loadXML(domain)
 
 #############################
 ### MOUNT ROOT FILESYSTEM ###
 #############################
 bootdisk = domain.getBootDisk()
 root_vg = 'vm_%s' % args.name
-os.makedirs(target)
+os.makedirs(settings.CHROOT)
 mounted = []
 
 ex(['kpartx', '-a', bootdisk], desc='Discover partitions on bootdisk')
-
 ex(['vgrename', 'vm_%s' % args.frm, root_vg], desc='Rename volume group')
-
-print('# Acvivate volume group:')
-ex(['vgchange', '-a', 'y', root_vg])
+ex(['vgchange', '-a', 'y', root_vg], desc='Activate volume group')
 
 print('# Mount filesystems')
-ex(['mount', '/dev/%s/root' % root_vg, target])
-mounted.append(target)
+ex(['mount', '/dev/%s/root' % root_vg, settings.CHROOT])
+mounted.append(settings.CHROOT)
 for dir in ['boot', 'home', 'usr', 'var', 'tmp']:
     dev = '/dev/%s/%s' % (root_vg, dir)
     if os.path.exists(dev):
-        mytarget = '%s/%s' % (target, dir)
+        mytarget = '%s/%s' % (settings.CHROOTtarget, dir)
         ex(['mount', dev, mytarget])
         mounted.append(mytarget)
 
 # mount dev and proc
-ex(['mount', '-o', 'bind', '/dev/', '%s/dev/' % target])
-ex(['mount', '-o', 'bind', '/dev/pts', '%s/dev/pts' % target])
-ex(['mount', '-o', 'bind', '/proc/', '%s/proc/' % target])
-ex(['mount', '-o', 'bind', '/sys/', '%s/sys/' % target])
-mounted += ['%s/proc' % target, '%s/dev' % target, '%s/dev/pts' % target,
-            '%s/sys' % target]
+ex(['mount', '-o', 'bind', '/dev/', '%s/dev/' % settings.CHROOT])
+ex(['mount', '-o', 'bind', '/dev/pts', '%s/dev/pts' % settings.CHROOT])
+ex(['mount', '-o', 'bind', '/proc/', '%s/proc/' % settings.CHROOT])
+ex(['mount', '-o', 'bind', '/sys/', '%s/sys/' % settings.CHROOT])
+mounted += ['%s/proc' % settings.CHROOT, '%s/dev' % settings.CHROOT,
+            '%s/dev/pts' % settings.CHROOT, '%s/sys' % settings.CHROOT]
 
 #########################
 ### MODIFY FILESYSTEM ###
@@ -239,7 +211,7 @@ f.write("(hd0)\t%s\n" % bootdisk_path)
 f.close()
 chroot(['update-grub'])
 chroot(['update-initramfs', '-u', '-k', 'all'])
-chroot(['chroot', target, 'grub-install', '/dev/mapper/vm_test-boot'], ignore_errors=True)
+chroot(['grub-install', '/dev/mapper/vm_test-boot'], ignore_errors=True)
 chroot(['sync'])
 chroot(['sync'])  # sync it from orbit, just to be sure.
 chroot(['grub-setup', '(hd0)'])
