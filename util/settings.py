@@ -1,0 +1,2 @@
+VERBOSE = False
+CHROOT = '/target'
