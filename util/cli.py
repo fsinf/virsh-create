@@ -3,7 +3,7 @@ import sys
 from subprocess import PIPE
 from subprocess import Popen
 
-from utils import settings
+from util import settings
 
 def ex(cmd, quiet=False, ignore_errors=False, desc=''):
     """Execute a command"""
