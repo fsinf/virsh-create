@@ -147,7 +147,7 @@ mounted.append(settings.CHROOT)
 for dir in ['boot', 'home', 'usr', 'var', 'tmp']:
     dev = '/dev/%s/%s' % (root_vg, dir)
     if os.path.exists(dev):
-        mytarget = '%s/%s' % (settings.CHROOTtarget, dir)
+        mytarget = '%s/%s' % (settings.CHROOT, dir)
         ex(['mount', dev, mytarget])
         mounted.append(mytarget)
 

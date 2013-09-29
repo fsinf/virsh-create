@@ -2,7 +2,16 @@ import copy
 
 from lxml import etree
 
-class LibVirtDomain(object):
+class LibVirtBase(object):
+    def getBootDisk(self):
+        # NOTE: according to documentation, the xml description sorts disks by
+        # boot device priority. So the first disk is the boot-disk.
+
+        # We convert returned value to str because for some reason the script
+        # segfaults (!) otherwise.
+        return str(self.xml.find('devices/disk[@type="block"]/source').get('dev'))
+
+class LibVirtDomain(LibVirtBase):
     def __init__(self, conn, name=None, id=None, domain=None):
         assert name is not None or id is not None or domain is not None
         self._conn = conn
@@ -55,117 +64,109 @@ class LibVirtDomain(object):
                 continue
             yield source.get('dev')
 
-    def getBootDisk(self):
-        # NOTE: according to documentation, the xml description sorts disks by
-        # boot device priority. So the first disk is the boot-disk.
-
-        # We convert returned value to str because for some reason the script
-        # segfaults (!) otherwise.
-        return str(self.xml.find('devices/disk[@type="block"]/source').get('dev'))
-
     def getBootTarget(self):
         return str(self.xml.find('devices/disk[@type="block"]/target').get('dev'))
 
     def copy(self):
         return LibVirtDomainXML(self.xml)
 
-class LibVirtDomainXML(object):
+class LibVirtDomainXML(LibVirtBase):
     def __init__(self, xml):
-        self._xml = xml
+        self.xml = xml
 
     @property
     def name(self):
-        return self._xml.find('name').text
+        return self.xml.find('name').text
 
     @name.setter
     def name(self, value):
-        self._xml.find('name').text = value
+        self.xml.find('name').text = value
 
     @name.deleter
     def name(self):
-        self.name = ''
+        self.xml.find('name').text = ''
 
     @property
     def uuid(self):
-        return self._xml.find('uuid').text
+        return self.xml.find('uuid').text
 
     @uuid.setter
     def uuid(self, value):
-        self._xml.find('uuid').text = value
+        self.xml.find('uuid').text = value
 
     @uuid.deleter
     def uuid(self):
-        self._xml.find('uuid').text = ''
+        self.xml.find('uuid').text = ''
 
     @property
     def description(self):
-        return self._xml.find('description').text
+        return self.xml.find('description').text
 
     @description.setter
     def description(self, value):
-        self._xml.find('description').text = value
+        self.xml.find('description').text = value
 
     @description.deleter
     def description(self):
-        self._xml.find('description').text = ''
+        self.xml.find('description').text = ''
 
     @property
     def vcpu(self):
-        return int(self._xml.find('vcpu').text)
+        return int(self.xml.find('vcpu').text)
 
     @vcpu.setter
     def vcpu(self, value):
-        self._xml.find('vcpu').text = str(value)
+        self.xml.find('vcpu').text = str(value)
 
     @vcpu.deleter
     def vcpu(self):
-        self._xml.find('vcpu').text = ''
+        self.xml.find('vcpu').text = ''
 
     @property
     def memory(self):
-        return int(self._xml.find('memory').text)
+        return int(self.xml.find('memory').text)
 
     @memory.setter
     def memory(self, value):
-        self._xml.find('memory').text = str(value)
+        self.xml.find('memory').text = str(value)
 
     @memory.deleter
     def memory(self):
-        self._xml.find('memory').text = ''
+        self.xml.find('memory').text = ''
 
     @property
     def currentMemory(self):
-        return int(self._xml.find('currentMemory').text)
+        return int(self.xml.find('currentMemory').text)
 
     @currentMemory.setter
     def currentMemory(self, value):
-        self._xml.find('currentMemory').text = str(value)
+        self.xml.find('currentMemory').text = str(value)
 
     @currentMemory.deleter
     def currentMemory(self):
-        self._xml.find('currentMemory').text = ''
+        self.xml.find('currentMemory').text = ''
 
     @property
     def vncport(self):
-        return self._xml.find('devices/graphics[@type="vnc"]').get('port')
+        return self.xml.find('devices/graphics[@type="vnc"]').get('port')
 
     @vncport.setter
     def vncport(self, value):
         if value < 1 or value > 65535:
             raise RuntimeError("Port out of range.")
-        self._xml.find('devices/graphics[@type="vnc"]').set('port', str(value))
+        self.xml.find('devices/graphics[@type="vnc"]').set('port', str(value))
 
     @property
     def mac(self):
-        self._xml.find('devices/interface/mac').get('address')
+        self.xml.find('devices/interface/mac').get('address')
 
     @mac.setter
     def mac(self, value):
-        self._xml.find('devices/interface/mac').set('address', value)
+        self.xml.find('devices/interface/mac').set('address', value)
 
     @property
     def virtual_function(self):
-        elem = self._xml.find('devices/interface/source/address')
+        elem = self.xml.find('devices/interface/source/address')
         if elem is None:
             return None
 
@@ -176,26 +177,25 @@ class LibVirtDomainXML(object):
         return domain, bus, slot, func
 
     def setVirtualFunction(self, domain, bus, slot, func):
-        elem = self._xml.find('devices/interface/source/address')
+        elem = self.xml.find('devices/interface/source/address')
         elem.set('domain', hex(domain))
         elem.set('bus', hex(bus))
         elem.set('slot', hex(slot))
         elem.set('function', hex(func))
 
     def fix_macs(self, id):
-        print('fix macs!')
-        for elem in self._xml.findall('devices/interface/mac'):
+        for elem in self.xml.findall('devices/interface/mac'):
             fields = elem.get('address').split(':')
             fields[-1] = str(id)
             fields[-2] = str(id)
             elem.set('address', ':'.join(fields))
 
     def replaceDisk(self, old_path, new_path):
-        elem = self._xml.find('devices/disk/source[@dev="%s"]' % old_path)
+        elem = self.xml.find('devices/disk/source[@dev="%s"]' % old_path)
         elem.set('dev', new_path)
 
     def __str__(self):
-        return etree.tostring(self._xml)
+        return etree.tostring(self.xml)
 
     def save(self):
         pass
