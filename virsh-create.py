@@ -8,13 +8,15 @@ import os
 import sys
 
 from collections import namedtuple
-from subprocess import PIPE
-from subprocess import Popen
 
 from lvm2py import LVM
 
 from libvirtpy.conn import conn
 from libvirtpy.constants import DOMAIN_STATUS_SHUTOFF
+
+from util import settings
+from util.cli import ex
+from util.cli import chroot
 
 LV = namedtuple('lv', ['name', 'vg', 'attr', 'size', 'pool', 'origin', 'data',
                 'move', 'log', 'copy', 'convert'])
@@ -38,6 +40,9 @@ parser.add_argument(
     'id', type=int, help="Id of the virtual machine. Used for VNC-port, MAC-address and IP")
 args = parser.parse_args()
 
+# set a few global settings.
+settings.VERBOSE = args.verbose
+
 ###########################
 ### Variable definition ###
 ###########################
@@ -48,34 +53,6 @@ ipv6 = '2001:629:3200:95::1:%s' % args.id
 ipv4_priv = '192.168.1.%s' % args.id
 ipv6_priv = 'fc00::%s' % args.id
 vncport = int('59%s' % args.id)
-target = '/target'
-
-###########################
-### Function definition ###
-###########################
-def ex(cmd, quiet=False, ignore_errors=False, desc=''):
-    """Execute a command"""
-    if not quiet and args.verbose:
-        cl = ' '.join(cmd)
-        if desc:
-            cl += '  # %s' % desc
-        print(cl)
-
-    p = Popen(cmd, stdout=PIPE, stderr=PIPE)
-    out, err = p.communicate()
-    status = p.returncode
-
-    if status != 0:
-        if ignore_errors:
-            print('Error: %s returned status code %s: %s (IGNORED)' % (cmd[0], status, err))
-        else:
-            print('Error: %s returned status code %s: %s' % (cmd[0], status, err))
-            sys.exit(1)
-    return out, err
-
-def chroot(cmd, quiet=False, ignore_errors=False, desc=''):
-    cmd = ['chroot', target, ] + cmd
-    ex(cmd, quiet=quiet, ignore_errors=ignore_errors, desc=desc)
 
 ##########################
 ### BASIC SANITY TESTS ###
@@ -83,8 +60,8 @@ def chroot(cmd, quiet=False, ignore_errors=False, desc=''):
 if os.getuid() != 0:  # check if we are root
     print('Error: You need to be root to create a virtual machine.')
     sys.exit(1)
-if os.path.exists(target):
-    print('Error: %s: Target exists' % target)
+if os.path.exists(settings.CHROOT):
+    print('Error: %s: chroot target exists.' % settings.CHROOT)
     sys.exit(1)
 
 #############################
@@ -164,6 +141,7 @@ for path in template.getDiskPaths():
     # get vg/lv from lvm, create new lv:
     vg = lvm.get_vg(vg_name, 'w')
     lv = vg.get_lv(lv_name)
+    print(vg, lv, lv.size())
     lv_size = int(lv.size('B'))
     print('Create LV %s on VG %s' % (new_lv_name, vg_name))
     new_lv = vg.create_lv(new_lv_name, lv_size, 'B')
