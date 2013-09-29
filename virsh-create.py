@@ -190,7 +190,7 @@ mounted += ['%s/proc' % target, '%s/dev' % target, '%s/dev/pts' % target,
 #########################
 ### MODIFY FILESYSTEM ###
 #########################
-os.chdir(target)
+os.chdir(settings.CHROOT)
 sed_ex = 's/%s/%s/' % (args.frm, args.name)
 
 # create a file that disables restarting of services:
@@ -231,27 +231,27 @@ ex(['sed', '-i', 's/:%s/:%s/g' % (template_id, args.id), 'etc/udev/rules.d/70-pe
 
 # reconfigure ssh key
 ex(['rm'] + glob.glob('etc/ssh/ssh_host_*'))
-ex(['chroot', target, 'dpkg-reconfigure', 'openssh-server'])
+chroot(['dpkg-reconfigure', 'openssh-server'])
 
 # update grub
 f = open('boot/grub/device.map', 'w')
 f.write("(hd0)\t%s\n" % bootdisk_path)
 f.close()
-ex(['chroot', target, 'update-grub'])
-ex(['chroot', target, 'update-initramfs', '-u', '-k', 'all'])
-ex(['chroot', target, 'grub-install', '/dev/mapper/vm_test-boot'], ignore_errors=True)
-ex(['chroot', target, 'sync'])
-ex(['chroot', target, 'sync'])
-ex(['chroot', target, 'grub-setup', '(hd0)'])
-ex(['chroot', target, 'sync'])
-ex(['chroot', target, 'sync'])
+chroot(['update-grub'])
+chroot(['update-initramfs', '-u', '-k', 'all'])
+chroot(['chroot', target, 'grub-install', '/dev/mapper/vm_test-boot'], ignore_errors=True)
+chroot(['sync'])
+chroot(['sync'])  # sync it from orbit, just to be sure.
+chroot(['grub-setup', '(hd0)'])
+chroot(['sync'])
+chroot(['sync'])  # sync it from orbit, just to be sure.
 
 # update system
-ex(['chroot', target, 'apt-get', 'update'])
-ex(['chroot', target, 'apt-get', '-y', 'dist-upgrade'])
+chroot(['apt-get', 'update'])
+chroot(['apt-get', '-y', 'dist-upgrade'])
 
 # generate SSH key
-ex(['chroot', target, 'ssh-keygen', '-t', 'rsa', '-q', '-N', '',
+chroot(['ssh-keygen', '-t', 'rsa', '-q', '-N', '',
     '-f', '/root/.ssh/id_rsa', '-O', 'no-x11-forwarding',
     '-O', 'source-address=%s,%s,%s,%s' % (ipv4, ipv6, ipv4_priv, ipv6_priv)])
 
@@ -265,4 +265,4 @@ for mount in reversed(mounted):
     ex(['umount', mount])
 ex(['vgchange', '-a', 'n', root_vg])
 ex(['kpartx', '-d', bootdisk])
-os.removedirs(target)
+os.removedirs(settings.CHROOT)
