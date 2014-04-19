@@ -1,2 +1,2 @@
-VERBOSE = False
 CHROOT = '/target'
+DRY = False
