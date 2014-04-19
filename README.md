@@ -1,3 +1,28 @@
+virsh-create
+============
+
+**virsh-create** is a script we use to clone virtual machines. It is mostly
+tailored to our environment, so you probably have to modify it to use it
+yourself.
+
+Installation
+------------
+
+The script requires lxml, so you need the following patches on a Debian based
+system:
+
+    apt-get install git python-virtualenv libxml2-dev
+
+If you want to install the script manually, you should create a virtualenv:
+
+    git clone https://github.com/fsinf/virsh-create.git
+    virtualenv virsh-create
+    virsh-create/bin/pip install -r requirements.txt
+    virsh-create/bin/python virsh-create/virsh-create.py -h
+
+Usage 
+-----
+
 simple script to clone virtual machines:
 
     virsh destroy wheezy
