@@ -1,6 +1,9 @@
-py2
-py3
-*.swp
-*.swo
-*.pyc
-*.pyo
+/py2
+/py3
+/bin/
+/include/
+/lib/
+/local/
+/share/
+*.sw[op]
+*.py[co]
