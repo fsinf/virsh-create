@@ -31,6 +31,7 @@ parser.add_argument('--cpus', default=1, type=int,
                     help="Number of CPUs (Default: %(default)s)")
 parser.add_argument('-v', '--verbose', default=0, action="count",
                     help="Verbose output. Can be given up to three times to increase verbosity.")
+parser.add_argument('--dry', action='store_true', help="Dry-run, don't really do anything")
 parser.add_argument('name', help="Name of the new virtual machine")
 parser.add_argument(
     'id', type=int, help="Id of the virtual machine. Used for VNC-port, MAC-address and IP")
@@ -42,6 +43,9 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S',
     level=logging.ERROR - args.verbose * 10 if args.verbose <= 3 else 30
 )
+
+# common configuration:
+settings.DRY = args.dry
 
 ###########################
 ### Variable definition ###
