@@ -7,11 +7,16 @@ environment, so you probably have to modify it to use it yourself.
 Installation
 ------------
 
-The script requires lxml, so you need the following patches on a Debian based system:
+If you want to install the script manually, you should create a virtualenv. The script requires
+lxml, so you need the following patches on a Debian based system:
 
-    apt-get install git python-virtualenv libxml2-dev libvirt-dev libvirt-bin lxc-dev
+    apt-get install git python-virtualenv libxml2-dev libvirt-dev libvirt-bin
 
-If you want to install the script manually, you should create a virtualenv:
+On Ubuntu 13.10 (at least), but not on Debian 7.0, you also need:
+
+    apt-get install libvirt-bin lxc-dev
+
+Then just clone the repository and install the dependencies.
 
     git clone https://github.com/fsinf/virsh-create.git
     virtualenv virsh-create
