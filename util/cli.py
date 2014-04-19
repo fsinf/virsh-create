@@ -9,12 +9,15 @@ from util import settings
 log = logging.getLogger(__name__)
 
 
-def ex(cmd, quiet=False, ignore_errors=False):
-    """Execute a command"""
+def ex(cmd, quiet=False, ignore_errors=False, dry=False):
+    """Execute a command
+
+    :param dry: Execute even if --dry was specified
+    """
     if not quiet:
         log.debug('- %s', ' '.join(cmd))
 
-    if settings.DRY:
+    if settings.DRY and not dry:
         return '', ''
     else:
         p = Popen(cmd, stdout=PIPE, stderr=PIPE)
