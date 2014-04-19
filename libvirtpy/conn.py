@@ -1,10 +1,14 @@
 import six
 
+from lxml import etree
+
+import libvirt
+
 from libvirtpy.error import ConnectionError
 from libvirtpy.error import DomainLookupError
 from libvirtpy.constants import AVAILABLE_VIRTUAL_FUNCTIONS
 from libvirtpy.domain import LibVirtDomain
-from libvirtpy._libvirt import libvirt
+#from libvirtpy._libvirt import libvirt
 
 
 class LibVirtConnection(object):
@@ -70,7 +74,7 @@ class LibVirtConnection(object):
         return list(available)[0]
 
     def loadXML(self, domain_xml):
-        domain = self._conn.defineXML(str(domain_xml))
+        domain = self._conn.defineXML(etree.tostring(domain_xml))
         return LibVirtDomain(self, domain=domain)
 
 conn = LibVirtConnection(None)

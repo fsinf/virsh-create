@@ -1,4 +1,5 @@
-from libvirtpy._libvirt import libvirt
+#from libvirtpy._libvirt import libvirt
+import libvirt
 
 # no state
 DOMAIN_STATUS_NOSTATE     = libvirt.VIR_DOMAIN_NOSTATE
