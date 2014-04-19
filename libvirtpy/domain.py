@@ -11,6 +11,9 @@ class LibVirtBase(object):
         # segfaults (!) otherwise.
         return str(self.xml.find('devices/disk[@type="block"]/source').get('dev'))
 
+    def getBootTarget(self):
+        return str(self.xml.find('devices/disk[@type="block"]/target').get('dev'))
+
 class LibVirtDomain(LibVirtBase):
     def __init__(self, conn, name=None, id=None, domain=None):
         assert name is not None or id is not None or domain is not None
