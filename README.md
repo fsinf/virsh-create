@@ -1,17 +1,15 @@
 virsh-create
 ============
 
-**virsh-create** is a script we use to clone virtual machines. It is mostly
-tailored to our environment, so you probably have to modify it to use it
-yourself.
+**virsh-create** is a script we use to clone virtual machines. It is mostly tailored to our
+environment, so you probably have to modify it to use it yourself.
 
 Installation
 ------------
 
-The script requires lxml, so you need the following patches on a Debian based
-system:
+The script requires lxml, so you need the following patches on a Debian based system:
 
-    apt-get install git python-virtualenv libxml2-dev libvirt-dev libvirt-bin
+    apt-get install git python-virtualenv libxml2-dev libvirt-dev libvirt-bin lxc-dev
 
 If you want to install the script manually, you should create a virtualenv:
 
@@ -19,6 +17,10 @@ If you want to install the script manually, you should create a virtualenv:
     virtualenv virsh-create
     virsh-create/bin/pip install -r requirements.txt
     virsh-create/bin/python virsh-create/virsh-create.py -h
+
+**Note:** On Ubuntu 13.10 and earlier, you need to set a missing symlink manually:
+
+    ln -s /usr/lib/libvirt-lxc.so.0 /usr/lib/libvirt-lxc.so
 
 Usage 
 -----
