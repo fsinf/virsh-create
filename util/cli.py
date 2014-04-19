@@ -14,17 +14,20 @@ def ex(cmd, quiet=False, ignore_errors=False):
     if not quiet:
         log.debug('- %s', ' '.join(cmd))
 
-    p = Popen(cmd, stdout=PIPE, stderr=PIPE)
-    out, err = p.communicate()
-    status = p.returncode
+    if settings.DRY:
+        return '', ''
+    else:
+        p = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        out, err = p.communicate()
+        status = p.returncode
 
-    if status != 0:
-        if ignore_errors:
-            log.warn('Error: %s returned status code %s: %s (IGNORED)', cmd[0], status, err)
-        else:
-            log.error('Error: %s returned status code %s: %s', cmd[0], status, err)
-            sys.exit(1)
-    return out, err
+        if status != 0:
+            if ignore_errors:
+                log.warn('Error: %s returned status code %s: %s (IGNORED)', cmd[0], status, err)
+            else:
+                log.error('Error: %s returned status code %s: %s', cmd[0], status, err)
+                sys.exit(1)
+        return out, err
 
 def chroot(cmd, quiet=False, ignore_errors=False):
     cmd = ['chroot', settings.CHROOT, ] + cmd
