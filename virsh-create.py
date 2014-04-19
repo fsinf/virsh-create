@@ -147,13 +147,15 @@ for path in template.getDiskPaths():
 ### Define domain in libvirt ###
 ################################
 log.info('Load new libvirt XML configuration')
-conn.loadXML(domain.xml)
+if not settings.DRY:
+    conn.loadXML(domain.xml)
 
 #############################
 ### MOUNT ROOT FILESYSTEM ###
 #############################
 bootdisk = domain.getBootDisk()
-os.makedirs(settings.CHROOT)
+if not settings.DRY:
+    os.makedirs(settings.CHROOT)
 mounted = []
 
 log.info('Detecting logical volumes')
@@ -184,15 +186,18 @@ mounted += ['%s/proc' % settings.CHROOT, '%s/dev' % settings.CHROOT,
 #########################
 ### MODIFY FILESYSTEM ###
 #########################
-os.chdir(settings.CHROOT)
 sed_ex = 's/%s/%s/' % (args.frm, args.name)
 
-# create a file that disables restarting of services:
 policy_d = 'usr/sbin/policy-rc.d'
-f = open(policy_d, 'w')
-f.write("#!/bin/sh\nexit 101")
-f.close()
-ex(['chmod', 'a+rx', policy_d])
+if not settings.DRY:
+    os.chdir(settings.CHROOT)
+
+    # create a file that disables restarting of services:
+    log.debug('- echo -e "#!/bin/sh\nexit 101" > %s' % policy_d)
+    f = open(policy_d, 'w')
+    f.write("#!/bin/sh\nexit 101")
+    f.close()
+    ex(['chmod', 'a+rx', policy_d])
 
 # create symlink for bootdisk named like it is in the VM
 ex(['ln', '-s', bootdisk, bootdisk_path])
@@ -202,30 +207,24 @@ log.info('Update hostname')
 ex(['sed', '-i', sed_ex, 'etc/hostname'])
 ex(['sed', '-i', sed_ex, 'etc/hosts'])
 ex(['sed', '-i', sed_ex, 'etc/fstab'])
-
-# update exim4 config
-exim4_config = 'etc/exim4/update-exim4.conf.conf'
-if os.path.exists(exim4_config):
-    ex(['sed', '-i', sed_ex, exim4_config])
+ex(['sed', '-i', sed_ex, 'etc/exim4/update-exim4.conf.conf'])
 
 # update cgabackup
 # TODO: this should really use "wheezy" instead of "host"
-ex(['sed', '-i', 's/backup-cga-host/backup-cga-%s/' % args.name, 'etc/cgabackup/client.conf'])
-ex(['sed', '-i', 's/\/backup\/cga\/host/\/backup\/cga\/%s/' % args.name,
-    'etc/cgabackup/client.conf'])
+cga_config = 'etc/cgabackup/client.conf'
+ex(['sed', '-i', 's/backup-cga-host/backup-cga-%s/' % args.name, cga_config])
+ex(['sed', '-i', 's/\/backup\/cga\/host/\/backup\/cga\/%s/' % args.name, cga_config])
 
 # Update IP-addresses
 log.info('Update IP addresses')
 interfaces = 'etc/network/interfaces'
 ex(['sed', '-i', 's/128.130.95.%s/%s/g' % (template_id, ipv4), interfaces])
 ex(['sed', '-i', 's/192.168.1.%s/%s/g' % (template_id, ipv4_priv), interfaces])
-ex(['sed', '-i', 's/2001:629:3200:95::1:%s/%s/g' % (template_id, ipv6),
-    interfaces])
+ex(['sed', '-i', 's/2001:629:3200:95::1:%s/%s/g' % (template_id, ipv6), interfaces])
 ex(['sed', '-i', 's/fc00::%s/%s/g' % (template_id, ipv6_priv), interfaces])
 
 # Update munin config-file:
-ex(['sed', '-i', 's/192.168.1.%s/%s/g' % (template_id, ipv4_priv),
-    'etc/munin/munin-node.conf'])
+ex(['sed', '-i', 's/192.168.1.%s/%s/g' % (template_id, ipv4_priv), 'etc/munin/munin-node.conf'])
 
 # Update MAC address
 log.info("Update MAC address")
@@ -269,9 +268,12 @@ chroot(['ssh-keygen', '-t', 'rsa', '-q', '-N', '',
 log.info('Done, cleaning up.')
 ex(['rm', bootdisk_path])  # symlink to mimik boot disk inside vm
 ex(['rm', policy_d])
-os.chdir('/root')
 for mount in reversed(mounted):
     ex(['umount', mount])
 ex(['vgchange', '-a', 'n', lv_name])
 ex(['kpartx', '-d', bootdisk])
-os.removedirs(settings.CHROOT)
+
+if not settings.DRY:
+    os.chdir('/root')
+    log.debug('- rmdir %s', settings.CHROOT)
+    os.removedirs(settings.CHROOT)
