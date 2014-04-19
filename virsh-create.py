@@ -238,13 +238,15 @@ chroot(['dpkg-reconfigure', 'openssh-server'])
 
 # Update GRUB
 log.info('Update GRUB')
-f = open('boot/grub/device.map', 'w')
-f.write("(hd0)\t%s\n" % bootdisk_path)
-f.close()
+device_map = 'boot/grub/device.map'
+log.debug('- echo -e \'(hd0)\\t%s\\n\' > %s', bootdisk_path, device_map)
+if not settings.DRY:
+    f = open(device_map, 'w')
+    f.write("(hd0)\t%s\n" % bootdisk_path)
+    f.close()
 chroot(['update-grub'])
 chroot(['update-initramfs', '-u', '-k', 'all'])
-chroot(['grub-install', '/dev/mapper/vm_%s-boot' % args.name],
-       ignore_errors=True)
+chroot(['grub-install', '/dev/mapper/vm_%s-boot' % args.name], ignore_errors=True)
 chroot(['sync'])
 chroot(['sync'])  # sync it from orbit, just to be sure.
 chroot(['grub-setup', '(hd0)'])
