@@ -11,7 +11,7 @@ Installation
 The script requires lxml, so you need the following patches on a Debian based
 system:
 
-    apt-get install git python-virtualenv libxml2-dev
+    apt-get install git python-virtualenv libxml2-dev libvirt-dev libvirt-bin
 
 If you want to install the script manually, you should create a virtualenv:
 
