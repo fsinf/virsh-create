@@ -72,7 +72,7 @@ template_id = template.domain_id  # i.e. 89.
 if args.name in [d.name for d in conn.getAllDomains()]:
     print("Error: Domain already defined.")
     sys.exit(1)
-bootdisk_path = '/dev/%s' % template.getBootDisk()  # i.e. /dev/vda
+bootdisk_path = '/dev/%s' % template.getBootTarget()  # i.e. /dev/vda
 
 if os.path.exists(bootdisk_path):
     print("Error: %s already exists" % bootdisk_path)
@@ -128,6 +128,11 @@ for path in template.getDiskPaths():
 
     # copy data
     ex(['dd', 'if=%s' % path, 'of=%s' % new_path, 'bs=4M'], desc='Copy disc')
+
+################################
+### Define domain in libvirt ###
+################################
+conn.loadXML(domain.xml)
 
 #############################
 ### MOUNT ROOT FILESYSTEM ###
@@ -199,7 +204,8 @@ ex(['sed', '-i', 's/\/backup\/cga\/host/\/backup\/cga\/%s/' % args.name,
     'etc/cgabackup/client.conf'])
 
 # update MAC-address
-ex(['sed', '-i', 's/:%s/:%s/g' % (template_id, args.id), 'etc/udev/rules.d/70-persistent-net.rules'])
+ex(['sed', '-i', 's/:%s/:%s/g' % (template_id, args.id),
+    'etc/udev/rules.d/70-persistent-net.rules'])
 
 # reconfigure ssh key
 ex(['rm'] + glob.glob('etc/ssh/ssh_host_*'))
@@ -211,7 +217,8 @@ f.write("(hd0)\t%s\n" % bootdisk_path)
 f.close()
 chroot(['update-grub'])
 chroot(['update-initramfs', '-u', '-k', 'all'])
-chroot(['grub-install', '/dev/mapper/vm_test-boot'], ignore_errors=True)
+chroot(['grub-install', '/dev/mapper/vm_%s-boot' % args.name],
+       ignore_errors=True)
 chroot(['sync'])
 chroot(['sync'])  # sync it from orbit, just to be sure.
 chroot(['grub-setup', '(hd0)'])
