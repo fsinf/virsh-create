@@ -4,9 +4,9 @@ from __future__ import unicode_literals
 
 import argparse
 import glob
+import logging
 import os
 import sys
-import logging
 import time
 
 from libvirtpy.conn import conn
@@ -274,7 +274,7 @@ ex(['rm', bootdisk_path])  # symlink to mimik boot disk inside vm
 ex(['rm', policy_d])
 for mount in reversed(mounted):
     ex(['umount', mount])
-    time.sleep(1)
+    time.sleep(2)
 ex(['vgchange', '-a', 'n', lv_name])
 ex(['kpartx', '-d', bootdisk])
 
