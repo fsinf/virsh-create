@@ -189,15 +189,15 @@ mounted += ['%s/proc' % settings.CHROOT, '%s/dev' % settings.CHROOT,
 sed_ex = 's/%s/%s/' % (args.frm, args.name)
 
 policy_d = 'usr/sbin/policy-rc.d'
+log.debug('- echo -e "#!/bin/sh\\nexit 101" > %s', policy_d)
 if not settings.DRY:
     os.chdir(settings.CHROOT)
 
     # create a file that disables restarting of services:
-    log.debug('- echo -e "#!/bin/sh\nexit 101" > %s' % policy_d)
     f = open(policy_d, 'w')
     f.write("#!/bin/sh\nexit 101")
     f.close()
-    ex(['chmod', 'a+rx', policy_d])
+ex(['chmod', 'a+rx', policy_d])
 
 # create symlink for bootdisk named like it is in the VM
 ex(['ln', '-s', bootdisk, bootdisk_path])
@@ -233,7 +233,8 @@ ex(['sed', '-i', 's/:%s/:%s/g' % (template_id, args.id),
 
 # Regenerate SSH key
 log.info('Regenerate SSH key')
-ex(['rm'] + glob.glob('etc/ssh/ssh_host_*'))
+log.debug('- rm /etc/ssh/ssh_host_*')
+ex(['rm'] + glob.glob('etc/ssh/ssh_host_*'), quiet=True)
 chroot(['dpkg-reconfigure', 'openssh-server'])
 
 # Update GRUB
