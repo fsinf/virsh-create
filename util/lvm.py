@@ -20,5 +20,5 @@ def lvdisplay(path):
     return LV(*stdout.strip().split(';'))
 
 def lvcreate(vg, name, size):
-    log.info('Create LV %s on VG %s'. name, vg)
+    log.info('Create LV %s on VG %s', name, vg)
     ex(['lvcreate', '-L', size, '-n', name, vg]),
