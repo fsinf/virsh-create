@@ -187,7 +187,7 @@ mounted += ['%s/proc' % settings.CHROOT, '%s/dev' % settings.CHROOT,
 #########################
 ### MODIFY FILESYSTEM ###
 #########################
-sed_ex = 's/%s/%s/' % (args.frm, args.name)
+sed_ex = 's/%s/%s/g' % (args.frm, args.name)
 
 policy_d = 'usr/sbin/policy-rc.d'
 log.debug('- echo -e "#!/bin/sh\\nexit 101" > %s', policy_d)
@@ -208,6 +208,7 @@ log.info('Update hostname')
 ex(['sed', '-i', sed_ex, 'etc/hostname'])
 ex(['sed', '-i', sed_ex, 'etc/hosts'])
 ex(['sed', '-i', sed_ex, 'etc/fstab'])
+ex(['sed', '-i', sed_ex, 'etc/mailname'])
 ex(['sed', '-i', sed_ex, 'etc/exim4/update-exim4.conf.conf'])
 
 # update cgabackup
