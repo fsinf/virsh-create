@@ -6,6 +6,7 @@ import argparse
 import glob
 import os
 import sys
+import logging
 
 from libvirtpy.conn import conn
 from libvirtpy.constants import DOMAIN_STATUS_SHUTOFF
@@ -14,6 +15,8 @@ from util import lvm
 from util import settings
 from util.cli import ex
 from util.cli import chroot
+
+log = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser()
 # optional arguments:
@@ -26,16 +29,19 @@ parser.add_argument('--mem', default=1.0, type=float,
                     help="Amount of Memory in GigaByte (Default: %(default)s))")
 parser.add_argument('--cpus', default=1, type=int,
                     help="Number of CPUs (Default: %(default)s)")
-parser.add_argument('--verbose', default=False, action="store_true",
-                    help="Print executed commands to stdout.")
-
+parser.add_argument('-v', '--verbose', default=0, action="count",
+                    help="Verbose output. Can be given up to three times to increase verbosity.")
 parser.add_argument('name', help="Name of the new virtual machine")
 parser.add_argument(
     'id', type=int, help="Id of the virtual machine. Used for VNC-port, MAC-address and IP")
 args = parser.parse_args()
 
-# set a few global settings.
-settings.VERBOSE = args.verbose
+# configure logging
+logging.basicConfig(
+    format='[%(asctime)s] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+    level=logging.ERROR - args.verbose * 10 if args.verbose <= 3 else 30
+)
 
 ###########################
 ### Variable definition ###
@@ -52,11 +58,13 @@ vncport = int('59%s' % args.id)
 ### BASIC SANITY TESTS ###
 ##########################
 if os.getuid() != 0:  # check if we are root
-    print('Error: You need to be root to create a virtual machine.')
+    log.error('Error: You need to be root to create a virtual machine.')
     sys.exit(1)
 if os.path.exists(settings.CHROOT):
-    print('Error: %s: chroot target exists.' % settings.CHROOT)
+    log.error('Error: %s: chroot target exists.', settings.CHROOT)
     sys.exit(1)
+
+log.debug('Creating VM %s...', args.name)
 
 #############################
 ### LIBVIRT SANITY CHECKS ###
@@ -64,18 +72,18 @@ if os.path.exists(settings.CHROOT):
 # get template domain:
 template = conn.getDomain(name=args.frm)
 if template.status != DOMAIN_STATUS_SHUTOFF:
-    print("Error: VM '%s' is not shut off" % args.frm)
+    log.error('Error: VM "%s" is not shut off', args.frm)
     sys.exit(1)
 template_id = template.domain_id  # i.e. 89.
 
 # check if domain is already defined
 if args.name in [d.name for d in conn.getAllDomains()]:
-    print("Error: Domain already defined.")
+    log.error("Error: Domain already defined.")
     sys.exit(1)
 bootdisk_path = '/dev/%s' % template.getBootTarget()  # i.e. /dev/vda
 
 if os.path.exists(bootdisk_path):
-    print("Error: %s already exists" % bootdisk_path)
+    log.error("Error: %s already exists", bootdisk_path)
     sys.exit(1)
 
 ##########################
@@ -91,7 +99,7 @@ for path in template.getDiskPaths():
 
     new_lv_name = lv.name.replace(template.name, args.name)
     if (lv.vg, new_lv_name) in lvs:
-        print("Error: LV %s in VG %s is already defined." % (new_lv_name, lv.vg))
+        log.error("Error: LV %s in VG %s is already defined.", new_lv_name, lv.vg)
         sys.exit(1)
     lv_mapping[(lv.vg, lv.name)] = (lv.vg, new_lv_name)
 
@@ -99,6 +107,7 @@ for path in template.getDiskPaths():
 ### COPY TEMPLATE ###
 #####################
 # finally get the full xml of the template
+log.info("Copying libvirt XML configuration...")
 domain = template.copy()
 domain.name = args.name
 domain.uuid = ''
@@ -127,36 +136,40 @@ for path in template.getDiskPaths():
     domain.replaceDisk(path, new_path)
 
     # copy data
-    ex(['dd', 'if=%s' % path, 'of=%s' % new_path, 'bs=4M'], desc='Copy disc')
+    log.info("Copying LV %s to %s", path, new_path)
+    ex(['dd', 'if=%s' % path, 'of=%s' % new_path, 'bs=4M'])
 
 ################################
 ### Define domain in libvirt ###
 ################################
+log.info('Load new libvirt XML configuration')
 conn.loadXML(domain.xml)
 
 #############################
 ### MOUNT ROOT FILESYSTEM ###
 #############################
 bootdisk = domain.getBootDisk()
-root_vg = 'vm_%s' % args.name
 os.makedirs(settings.CHROOT)
 mounted = []
 
-ex(['kpartx', '-a', bootdisk], desc='Discover partitions on bootdisk')
-ex(['vgrename', 'vm_%s' % args.frm, root_vg], desc='Rename volume group')
-ex(['vgchange', '-a', 'y', root_vg], desc='Activate volume group')
+log.info('Detecting logical volumes')
+ex(['kpartx', '-a', bootdisk])  # Discover partitions on bootdisk
+ex(['vgrename', 'vm_%s' % args.frm, lv_name])  # Rename volume group
+ex(['vgchange', '-a', 'y', lv_name])  # Activate volume group
 
-print('# Mount filesystems')
-ex(['mount', '/dev/%s/root' % root_vg, settings.CHROOT])
+log.info('Mounting logical volumes...')
+ex(['mount', '/dev/%s/root' % lv_name, settings.CHROOT])
 mounted.append(settings.CHROOT)
 for dir in ['boot', 'home', 'usr', 'var', 'tmp']:
-    dev = '/dev/%s/%s' % (root_vg, dir)
+    dev = '/dev/%s/%s' % (lv_name, dir)
     if os.path.exists(dev):
         mytarget = '%s/%s' % (settings.CHROOT, dir)
+        log.info('... mount %s %s', dev, mytarget)
         ex(['mount', dev, mytarget])
         mounted.append(mytarget)
 
 # mount dev and proc
+log.info('Mounting /dev, /dev/pts, /proc, /sys')
 ex(['mount', '-o', 'bind', '/dev/', '%s/dev/' % settings.CHROOT])
 ex(['mount', '-o', 'bind', '/dev/pts', '%s/dev/pts' % settings.CHROOT])
 ex(['mount', '-o', 'bind', '/proc/', '%s/proc/' % settings.CHROOT])
@@ -181,11 +194,24 @@ ex(['chmod', 'a+rx', policy_d])
 ex(['ln', '-s', bootdisk, bootdisk_path])
 
 # update hostname
+log.info('Update hostname')
 ex(['sed', '-i', sed_ex, 'etc/hostname'])
 ex(['sed', '-i', sed_ex, 'etc/hosts'])
 ex(['sed', '-i', sed_ex, 'etc/fstab'])
 
-# update IP-address
+# update exim4 config
+exim4_config = 'etc/exim4/update-exim4.conf.conf'
+if os.path.exists(exim4_config):
+    ex(['sed', '-i', sed_ex, exim4_config])
+
+# update cgabackup
+# TODO: this should really use "wheezy" instead of "host"
+ex(['sed', '-i', 's/backup-cga-host/backup-cga-%s/' % args.name, 'etc/cgabackup/client.conf'])
+ex(['sed', '-i', 's/\/backup\/cga\/host/\/backup\/cga\/%s/' % args.name,
+    'etc/cgabackup/client.conf'])
+
+# Update IP-addresses
+log.info('Update IP addresses')
 interfaces = 'etc/network/interfaces'
 ex(['sed', '-i', 's/128.130.95.%s/%s/g' % (template_id, ipv4), interfaces])
 ex(['sed', '-i', 's/192.168.1.%s/%s/g' % (template_id, ipv4_priv), interfaces])
@@ -193,30 +219,22 @@ ex(['sed', '-i', 's/2001:629:3200:95::1:%s/%s/g' % (template_id, ipv6),
     interfaces])
 ex(['sed', '-i', 's/fc00::%s/%s/g' % (template_id, ipv6_priv), interfaces])
 
-# update munin config-file:
+# Update munin config-file:
 ex(['sed', '-i', 's/192.168.1.%s/%s/g' % (template_id, ipv4_priv),
     'etc/munin/munin-node.conf'])
 
-# update cgabackup:
-ex(['sed', '-i', 's/backup-cga-host/backup-cga-%s/' % args.name,
-    'etc/cgabackup/client.conf'])
-ex(['sed', '-i', 's/\/backup\/cga\/host/\/backup\/cga\/%s/' % args.name,
-    'etc/cgabackup/client.conf'])
-
-# update exim4 configuration:
-exim4_config = 'etc/exim4/update-exim4.conf.conf'
-if os.path.exists(exim4_config):
-    ex(['sed', '-i', sed_ex, exim4_config])
-
-# update MAC-address
+# Update MAC address
+log.info("Update MAC address")
 ex(['sed', '-i', 's/:%s/:%s/g' % (template_id, args.id),
     'etc/udev/rules.d/70-persistent-net.rules'])
 
-# reconfigure ssh key
+# Regenerate SSH key
+log.info('Regenerate SSH key')
 ex(['rm'] + glob.glob('etc/ssh/ssh_host_*'))
 chroot(['dpkg-reconfigure', 'openssh-server'])
 
-# update grub
+# Update GRUB
+log.info('Update GRUB')
 f = open('boot/grub/device.map', 'w')
 f.write("(hd0)\t%s\n" % bootdisk_path)
 f.close()
@@ -231,10 +249,12 @@ chroot(['sync'])
 chroot(['sync'])  # sync it from orbit, just to be sure.
 
 # update system
+log.info('Update system')
 chroot(['apt-get', 'update'])
 chroot(['apt-get', '-y', 'dist-upgrade'])
 
 # generate SSH key
+log.info('Generate SSH client keys for backups')
 chroot(['ssh-keygen', '-t', 'rsa', '-q', '-N', '',
     '-f', '/root/.ssh/id_rsa', '-O', 'no-x11-forwarding',
     '-O', 'source-address=%s,%s,%s,%s' % (ipv4, ipv6, ipv4_priv, ipv6_priv)])
@@ -242,11 +262,12 @@ chroot(['ssh-keygen', '-t', 'rsa', '-q', '-N', '',
 ###############
 ### CLEANUP ###
 ###############
+log.info('Done, cleaning up.')
 ex(['rm', bootdisk_path])  # symlink to mimik boot disk inside vm
 ex(['rm', policy_d])
 os.chdir('/root')
 for mount in reversed(mounted):
     ex(['umount', mount])
-ex(['vgchange', '-a', 'n', root_vg])
+ex(['vgchange', '-a', 'n', lv_name])
 ex(['kpartx', '-d', bootdisk])
 os.removedirs(settings.CHROOT)
