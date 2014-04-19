@@ -203,6 +203,11 @@ ex(['sed', '-i', 's/backup-cga-host/backup-cga-%s/' % args.name,
 ex(['sed', '-i', 's/\/backup\/cga\/host/\/backup\/cga\/%s/' % args.name,
     'etc/cgabackup/client.conf'])
 
+# update exim4 configuration:
+exim4_config = 'etc/exim4/update-exim4.conf.conf'
+if os.path.exists(exim4_config):
+    ex(['sed', '-i', sed_ex, exim4_config])
+
 # update MAC-address
 ex(['sed', '-i', 's/:%s/:%s/g' % (template_id, args.id),
     'etc/udev/rules.d/70-persistent-net.rules'])
