@@ -278,7 +278,8 @@ ex(['rm', bootdisk_path])  # symlink to mimik boot disk inside vm
 ex(['rm', policy_d])
 for mount in reversed(mounted):
     ex(['umount', mount])
-    time.sleep(2)
+    if not settings.DRY:
+        time.sleep(2)
 ex(['vgchange', '-a', 'n', lv_name])
 ex(['kpartx', '-d', bootdisk])
 
