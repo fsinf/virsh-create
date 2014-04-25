@@ -273,13 +273,15 @@ chroot(['ssh-keygen', '-t', 'rsa', '-q', '-N', '',
 log.info('Done, cleaning up.')
 ex(['rm', bootdisk_path])  # symlink to mimik boot disk inside vm
 ex(['rm', policy_d])
+
+if not settings.DRY:
+    os.chdir('/root')
+
 for mount in reversed(mounted):
     ex(['umount', mount])
-    time.sleep(2)
 ex(['vgchange', '-a', 'n', lv_name])
 ex(['kpartx', '-d', bootdisk])
 
 if not settings.DRY:
-    os.chdir('/root')
     log.debug('- rmdir %s', settings.CHROOT)
     os.removedirs(settings.CHROOT)
