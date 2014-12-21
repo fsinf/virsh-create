@@ -15,7 +15,7 @@ def ex(cmd, quiet=False, ignore_errors=False, dry=False):
     :param dry: Execute even if --dry was specified
     """
     if not quiet:
-        log.debug('- %s', ' '.join(cmd))
+        log.debug('- %s', ' '.join([c if c else '""' for c in cmd]))
 
     if settings.DRY and not dry:
         return '', ''
