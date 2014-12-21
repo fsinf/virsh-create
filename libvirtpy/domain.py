@@ -1,6 +1,9 @@
 import copy
+import logging
 
 from lxml import etree
+
+log = logging.getLogger(__name__)
 
 class LibVirtBase(object):
     def getBootDisk(self):
@@ -108,7 +111,7 @@ class LibVirtDomainXML(LibVirtBase):
         if elem is not None:
             self.xml.find('description').text = value
         else:
-            print("Warning: Could not set description.")
+            log.warn("Warning: Could not set description.")
 
     @description.deleter
     def description(self):
