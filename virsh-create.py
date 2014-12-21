@@ -265,7 +265,7 @@ ex(['mv', 'etc/apt/sources.list.d/fsinf.list.backup', 'etc/apt/sources.list.d/fs
 
 # generate SSH key
 log.info('Generate SSH client keys for backups')
-chroot(['rm', '-f', 'root/.ssh/id_*'])  # remove any prexisting SSH keys
+ex(['rm', '-f', 'root/.ssh/id_*'])  # remove any prexisting SSH keys
 chroot(['ssh-keygen', '-q', '-N', '', '-f', '/root/.ssh/id_rsa', '-O', 'no-x11-forwarding',
         '-O', 'source-address=%s,%s,%s,%s' % (ipv4, ipv6, ipv4_priv, ipv6_priv)])
 
