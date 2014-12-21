@@ -260,6 +260,8 @@ ex(['sed', '-i.backup', 's/http:\/\/%s.local/https:\/\/%s.fsinf.at/' % (args.kin
 ex(['sed', '-i.backup', 's/apt.local/apt.fsinf.at/', 'etc/apt/sources.list.d/fsinf.list'])
 chroot(['apt-get', 'update'])
 chroot(['apt-get', '-y', 'dist-upgrade'])
+ex(['mv', 'etc/apt/sources.list.backup', 'etc/apt/sources.list'])
+ex(['mv', 'etc/apt/sources.list.d/fsinf.list.backup', 'etc/apt/sources.list.d/fsinf.list'])
 
 # generate SSH key
 log.info('Generate SSH client keys for backups')
