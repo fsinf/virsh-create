@@ -265,9 +265,8 @@ ex(['mv', 'etc/apt/sources.list.d/fsinf.list.backup', 'etc/apt/sources.list.d/fs
 
 # generate SSH key
 log.info('Generate SSH client keys for backups')
-chroot(['ssh-keygen', '-t', 'rsa', '-q', '-N', '',
-    '-f', '/root/.ssh/id_rsa', '-O', 'no-x11-forwarding',
-    '-O', 'source-address=%s,%s,%s,%s' % (ipv4, ipv6, ipv4_priv, ipv6_priv)])
+chroot(['ssh-keygen', '-q', '-N', '', '-f', '/root/.ssh/id_rsa', '-O', 'no-x11-forwarding',
+        '-O', 'source-address=%s,%s,%s,%s' % (ipv4, ipv6, ipv4_priv, ipv6_priv)])
 
 # fix hostname in public key:
 ex(['sed', '-i', 's/@[^@]*$/@%s/' % args.name, '/root/.ssh/id_rsa.pub'])
