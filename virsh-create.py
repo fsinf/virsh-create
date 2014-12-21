@@ -21,8 +21,7 @@ log = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser()
 # optional arguments:
-parser.add_argument('-f', '--from', nargs=1, default="wheezy", metavar='VM',
-                    dest='frm',
+parser.add_argument('-f', '--from', default="wheezy", metavar='VM', dest='frm',
                     help="Virtual machine to clone from (Default: %(default)s)")
 parser.add_argument('--desc', default='',
                    help="Description for the new virtual machine")
