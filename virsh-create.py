@@ -25,6 +25,8 @@ parser.add_argument('-f', '--from', default="wheezy", metavar='VM', dest='frm',
                     help="Virtual machine to clone from (Default: %(default)s)")
 parser.add_argument('--desc', default='',
                    help="Description for the new virtual machine")
+parser.add_argument('--kind', default='debian', choices=('debian', 'ubuntu', ),
+                    help="Set to 'ubuntu' if this is a Ubuntu and not a Debian template.")
 parser.add_argument('--mem', default=1.0, type=float,
                     help="Amount of Memory in GigaByte (Default: %(default)s))")
 parser.add_argument('--cpus', default=1, type=int,
