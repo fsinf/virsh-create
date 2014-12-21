@@ -7,7 +7,6 @@ import glob
 import logging
 import os
 import sys
-import time
 
 from libvirtpy.conn import conn
 from libvirtpy.constants import DOMAIN_STATUS_SHUTOFF
