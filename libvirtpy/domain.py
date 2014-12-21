@@ -104,7 +104,11 @@ class LibVirtDomainXML(LibVirtBase):
 
     @description.setter
     def description(self, value):
-        self.xml.find('description').text = value
+        elem = self.xml.find('description')
+        if elem is not None:
+            self.xml.find('description').text = value
+        else:
+            print("Warning: Could not set description.")
 
     @description.deleter
     def description(self):
