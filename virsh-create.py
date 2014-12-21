@@ -253,12 +253,12 @@ chroot(['update-initramfs', '-u', '-k', 'all'])
 chroot(['grub-install', '/dev/mapper/vm_%s-boot' % args.name], ignore_errors=True)
 chroot(['sync'])
 chroot(['sync'])  # sync it from orbit, just to be sure.
-chroot(['grub-setup', '(hd0)'])
-chroot(['sync'])
-chroot(['sync'])  # sync it from orbit, just to be sure.
 
 # update system
 log.info('Update system')
+ex(['sed', '-i.backup', 's/http:\/\/%s.local/https:\/\/%s.fsinf.at/' % (args.kind, args.kind),
+    'etc/apt/sources.list'])
+ex(['sed', '-i.backup', 's/apt.local/apt.fsinf.at/', 'etc/apt/sources.list.d/fsinf.list'])
 chroot(['apt-get', 'update'])
 chroot(['apt-get', '-y', 'dist-upgrade'])
 
