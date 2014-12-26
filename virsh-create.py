@@ -199,9 +199,8 @@ if not settings.DRY:
     os.chdir(settings.CHROOT)
 
     # create a file that disables restarting of services:
-    f = open(policy_d, 'w')
-    f.write("#!/bin/sh\nexit 101")
-    f.close()
+    with open(policy_d, 'w') as f:
+        f.write("#!/bin/sh\nexit 101")
 ex(['chmod', 'a+rx', policy_d])
 
 # create symlink for bootdisk named like it appears in the VM
