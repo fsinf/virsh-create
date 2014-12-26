@@ -249,9 +249,6 @@ chroot(['dpkg-reconfigure', 'openssh-server'])
 log.info('Update GRUB')
 chroot(['update-grub'])
 chroot(['update-initramfs', '-u', '-k', 'all'])
-chroot(['grub-install', '/dev/mapper/vm_%s-boot' % args.name], ignore_errors=True)
-chroot(['sync'])
-chroot(['sync'])  # sync it from orbit, just to be sure.
 
 # update system
 log.info('Update system')
