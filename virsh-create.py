@@ -206,6 +206,9 @@ ex(['chmod', 'a+rx', policy_d])
 # create symlink for bootdisk named like it appears in the VM
 ex(['ln', '-s', bootdisk, bootdisk_path])
 
+# copy /etc/resolv.conf, so that e.g. apt-get update works
+ex(['cp', '-S', '.backup', '-ba', '/etc/resolv.conf', 'etc/resolv.conv'])
+
 # update hostname
 log.info('Update hostname')
 ex(['sed', '-i', sed_ex, 'etc/hostname'])
@@ -269,13 +272,14 @@ chroot(['ssh-keygen', '-t', 'rsa', '-q', '-N', '', '-f', '/root/.ssh/id_rsa', '-
         'source-address=%s,%s,%s,%s' % (ipv4, ipv6, ipv4_priv, ipv6_priv)])
 
 # fix hostname in public key:
-ex(['sed', '-i', 's/@[^@]*$/@%s/' % args.name, '/root/.ssh/id_rsa.pub'])
+chroot(['sed', '-i', 's/@[^@]*$/@%s/' % args.name, '/root/.ssh/id_rsa.pub'])
 
 ###############
 ### CLEANUP ###
 ###############
 log.info('Done, cleaning up.')
 ex(['rm', policy_d])
+chroot(['mv', '/etc/resolv.conf.backup', '/etc/resolv.conf'])
 
 if not settings.DRY:
     os.chdir('/root')
