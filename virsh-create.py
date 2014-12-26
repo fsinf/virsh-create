@@ -207,7 +207,7 @@ ex(['chmod', 'a+rx', policy_d])
 ex(['ln', '-s', bootdisk, bootdisk_path])
 
 # copy /etc/resolv.conf, so that e.g. apt-get update works
-ex(['cp', '-S', '.backup', '-ba', '/etc/resolv.conf', 'etc/resolv.conv'])
+ex(['cp', '-S', '.backup', '-ba', '/etc/resolv.conf', 'etc/resolv.conf'])
 
 # update hostname
 log.info('Update hostname')
