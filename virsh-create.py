@@ -217,8 +217,8 @@ ex(['sed', '-i', sed_ex, 'etc/exim4/update-exim4.conf.conf'])
 # update cgabackup
 # TODO: this should really use "wheezy" instead of "host"
 cga_config = 'etc/cgabackup/client.conf'
-ex(['sed', '-i', 's/backup-cga-host/backup-cga-%s/' % args.name, cga_config])
-ex(['sed', '-i', 's/\/backup\/cga\/host/\/backup\/cga\/%s/' % args.name, cga_config])
+ex(['sed', '-i', 's/backup-cga-%s/backup-cga-%s/' % (args.frm, args.name), cga_config])
+ex(['sed', '-i', 's/\/backup\/cga\/%s/\/backup\/cga\/%s/' % (args.frm, args.name), cga_config])
 
 # Update IP-addresses
 log.info('Update IP addresses')
