@@ -193,12 +193,12 @@ for typ, dev, target in pseudo_filesystems:
 #########################
 sed_ex = 's/%s/%s/g' % (args.frm, args.name)
 
+# create a file that disables restarting of services:
 policy_d = 'usr/sbin/policy-rc.d'
 log.debug('- echo -e "#!/bin/sh\\nexit 101" > %s', policy_d)
 if not settings.DRY:
-    os.chdir(settings.CHROOT)
+    os.chdir(settings.CHROOT)  # just while we're at it :-)
 
-    # create a file that disables restarting of services:
     with open(policy_d, 'w') as f:
         f.write("#!/bin/sh\nexit 101")
 ex(['chmod', 'a+rx', policy_d])
