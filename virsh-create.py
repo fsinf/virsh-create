@@ -177,12 +177,25 @@ for dir in ['boot', 'home', 'usr', 'var', 'tmp']:
 
 # mount dev and proc
 log.info('Mounting /dev, /dev/pts, /proc, /sys')
-ex(['mount', '-o', 'bind', '/dev/', '%s/dev/' % settings.CHROOT])
-ex(['mount', '-o', 'bind', '/dev/pts', '%s/dev/pts' % settings.CHROOT])
-ex(['mount', '-o', 'bind', '/proc/', '%s/proc/' % settings.CHROOT])
-ex(['mount', '-o', 'bind', '/sys/', '%s/sys/' % settings.CHROOT])
-mounted += ['%s/proc' % settings.CHROOT, '%s/dev' % settings.CHROOT,
-            '%s/dev/pts' % settings.CHROOT, '%s/sys' % settings.CHROOT]
+# mount -t sysfs none sys
+# mount -t devtmpfs udev dev
+# mount -t devpts devpts dev/pts/
+# mount -t proc proc proc
+pseudo_filesystems = (
+    ('sysfs', 'sysfs', os.path.join(settings.CHROOT, 'sys')),
+    ('devtmpfs', 'udev', os.path.join(settings.CHROOT, 'dev')),
+    ('devpts', 'devpts', os.path.join(settings.CHROOT, 'dev', 'pts')),
+    ('proc', 'proc', os.path.join(settings.CHROOT, 'proc')),
+)
+for typ, dev, target in pseudo_filesystems:
+    ex(['mount', '-t', typ, dev, target])
+    mounted.append(target)
+#ex(['mount', '-o', 'bind', '/dev/', '%s/dev/' % settings.CHROOT])
+#ex(['mount', '-o', 'bind', '/dev/pts', '%s/dev/pts' % settings.CHROOT])
+#ex(['mount', '-o', 'bind', '/proc/', '%s/proc/' % settings.CHROOT])
+#ex(['mount', '-o', 'bind', '/sys/', '%s/sys/' % settings.CHROOT])
+#mounted += ['%s/proc' % settings.CHROOT, '%s/dev' % settings.CHROOT,
+#            '%s/dev/pts' % settings.CHROOT, '%s/sys' % settings.CHROOT]
 
 #########################
 ### MODIFY FILESYSTEM ###
