@@ -275,7 +275,6 @@ ex(['sed', '-i', 's/@[^@]*$/@%s/' % args.name, '/root/.ssh/id_rsa.pub'])
 ### CLEANUP ###
 ###############
 log.info('Done, cleaning up.')
-ex(['rm', bootdisk_path])  # symlink to mimik boot disk inside vm
 ex(['rm', policy_d])
 
 if not settings.DRY:
