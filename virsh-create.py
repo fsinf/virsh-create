@@ -165,12 +165,12 @@ ex(['vgrename', 'vm_%s' % args.frm, lv_name])  # Rename volume group
 ex(['vgchange', '-a', 'y', lv_name])  # Activate volume group
 
 log.info('Mounting logical volumes...')
-ex(['mount', '/dev/%s/root' % lv_name, settings.CHROOT])
+ex(['mount', os.path.join('/dev', lv_name, 'root'), settings.CHROOT])
 mounted.append(settings.CHROOT)
 for dir in ['boot', 'home', 'usr', 'var', 'tmp']:
     dev = '/dev/%s/%s' % (lv_name, dir)
     if os.path.exists(dev):
-        mytarget = '%s/%s' % (settings.CHROOT, dir)
+        mytarget = os.path.join(settings.CHROOT, dir)
         log.info('... mount %s %s', dev, mytarget)
         ex(['mount', dev, mytarget])
         mounted.append(mytarget)
