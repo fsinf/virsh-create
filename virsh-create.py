@@ -86,7 +86,7 @@ if args.name in [d.name for d in conn.getAllDomains()]:
     log.error("Error: Domain already defined.")
     sys.exit(1)
 # path to bootdisk, including chroot prefix, e.g. /target/dev/vda
-bootdisk_path = os.path.join(settings.CHROOT, 'dev', template.getBootTarget())
+bootdisk_path = os.path.join('/dev', template.getBootTarget())
 
 if os.path.exists(bootdisk_path):
     log.error("Error: %s already exists", bootdisk_path)
@@ -278,7 +278,7 @@ chroot(['sed', '-i', 's/@[^@]*$/@%s/' % args.name, '/root/.ssh/id_rsa.pub'])
 ### CLEANUP ###
 ###############
 log.info('Done, cleaning up.')
-ex(['rm', policy_d])
+ex(['rm', policy_d, bootdisk_path])
 chroot(['mv', '/etc/resolv.conf.backup', '/etc/resolv.conf'])
 
 if not settings.DRY:
