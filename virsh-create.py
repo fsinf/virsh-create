@@ -85,7 +85,8 @@ template_id = template.domain_id  # i.e. 89.
 if args.name in [d.name for d in conn.getAllDomains()]:
     log.error("Error: Domain already defined.")
     sys.exit(1)
-bootdisk_path = '/dev/%s' % template.getBootTarget()  # i.e. /dev/vda
+# path to bootdisk, including chroot prefix, e.g. /target/dev/vda
+bootdisk_path = os.path.join(settings.CHROOT, 'dev', template.getBootTarget())
 
 if os.path.exists(bootdisk_path):
     log.error("Error: %s already exists", bootdisk_path)
@@ -177,10 +178,6 @@ for dir in ['boot', 'home', 'usr', 'var', 'tmp']:
 
 # mount dev and proc
 log.info('Mounting /dev, /dev/pts, /proc, /sys')
-# mount -t sysfs none sys
-# mount -t devtmpfs udev dev
-# mount -t devpts devpts dev/pts/
-# mount -t proc proc proc
 pseudo_filesystems = (
     ('sysfs', 'sysfs', os.path.join(settings.CHROOT, 'sys')),
     ('devtmpfs', 'udev', os.path.join(settings.CHROOT, 'dev')),
@@ -190,12 +187,6 @@ pseudo_filesystems = (
 for typ, dev, target in pseudo_filesystems:
     ex(['mount', '-t', typ, dev, target])
     mounted.append(target)
-#ex(['mount', '-o', 'bind', '/dev/', '%s/dev/' % settings.CHROOT])
-#ex(['mount', '-o', 'bind', '/dev/pts', '%s/dev/pts' % settings.CHROOT])
-#ex(['mount', '-o', 'bind', '/proc/', '%s/proc/' % settings.CHROOT])
-#ex(['mount', '-o', 'bind', '/sys/', '%s/sys/' % settings.CHROOT])
-#mounted += ['%s/proc' % settings.CHROOT, '%s/dev' % settings.CHROOT,
-#            '%s/dev/pts' % settings.CHROOT, '%s/sys' % settings.CHROOT]
 
 #########################
 ### MODIFY FILESYSTEM ###
@@ -213,7 +204,7 @@ if not settings.DRY:
     f.close()
 ex(['chmod', 'a+rx', policy_d])
 
-# create symlink for bootdisk named like it is in the VM
+# create symlink for bootdisk named like it appears in the VM
 ex(['ln', '-s', bootdisk, bootdisk_path])
 
 # update hostname
@@ -254,12 +245,6 @@ chroot(['dpkg-reconfigure', 'openssh-server'])
 
 # Update GRUB
 log.info('Update GRUB')
-device_map = 'boot/grub/device.map'
-log.debug('- echo -e \'(hd0)\\t%s\\n\' > %s', bootdisk_path, device_map)
-if not settings.DRY:
-    f = open(device_map, 'w')
-    f.write("(hd0)\t%s\n" % bootdisk_path)
-    f.close()
 chroot(['update-grub'])
 chroot(['update-initramfs', '-u', '-k', 'all'])
 chroot(['grub-install', '/dev/mapper/vm_%s-boot' % args.name], ignore_errors=True)
