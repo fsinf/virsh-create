@@ -244,7 +244,9 @@ log.info('Regenerate SSH key')
 log.debug('- rm /etc/ssh/ssh_host_*')
 ex(['rm'] + glob.glob('etc/ssh/ssh_host_*'), quiet=True)
 ex(['ssh-keygen', '-t', 'ed25519', '-f', 'etc/ssh/ssh_host_ed25519_key', '-N', ''])
+log.info('ed25519 fingerprint: %s', ex(['ssh-keygen', '-lf', 'etc/ssh/ssh_host_ed25519_key'])[0])
 ex(['ssh-keygen', '-t', 'rsa', '-b', '4096', '-f', 'etc/ssh/ssh_host_rsa_key', '-N', ''])
+log.info('rsa fingerprint: %s', ex(['ssh-keygen', '-lf', 'etc/ssh/ssh_host_rsa_key'])[0])
 
 # Update GRUB
 log.info('Update GRUB')
