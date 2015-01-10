@@ -239,11 +239,12 @@ log.info("Update MAC address")
 ex(['sed', '-i', 's/:%s/:%s/g' % (template_id, args.id),
     'etc/udev/rules.d/70-persistent-net.rules'])
 
-# Regenerate SSH key
+# Regenerate SSH server key
 log.info('Regenerate SSH key')
 log.debug('- rm /etc/ssh/ssh_host_*')
 ex(['rm'] + glob.glob('etc/ssh/ssh_host_*'), quiet=True)
-chroot(['dpkg-reconfigure', 'openssh-server'])
+ex(['ssh-keygen', '-t', 'ed25519', '-f', 'etc/ssh/ssh_host_ed25519_key', '-N', ''])
+ex(['ssh-keygen', '-t', 'rsa', '-b', '4096', '-f', 'etc/ssh/ssh_host_rsa_key', '-N', ''])
 
 # Update GRUB
 log.info('Update GRUB')
