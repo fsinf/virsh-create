@@ -20,7 +20,7 @@ log = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser()
 # optional arguments:
-parser.add_argument('-f', '--from', default="wheezy", metavar='VM', dest='frm',
+parser.add_argument('-f', '--from', default="jessie", metavar='VM', dest='frm',
                     help="Virtual machine to clone from (Default: %(default)s)")
 parser.add_argument('--desc', default='',
                    help="Description for the new virtual machine")
@@ -218,7 +218,6 @@ ex(['sed', '-i', sed_ex, 'etc/mailname'])
 ex(['sed', '-i', sed_ex, 'etc/exim4/update-exim4.conf.conf'])
 
 # update cgabackup
-# TODO: this should really use "wheezy" instead of "host"
 cga_config = 'etc/cgabackup/client.conf'
 ex(['sed', '-i', 's/backup-cga-%s/backup-cga-%s/' % (args.frm, args.name), cga_config])
 ex(['sed', '-i', 's/\/backup\/cga\/%s/\/backup\/cga\/%s/' % (args.frm, args.name), cga_config])
