@@ -249,7 +249,9 @@ log.info('rsa fingerprint: %s', ex(['ssh-keygen', '-lf', 'etc/ssh/ssh_host_rsa_k
 
 # Update GRUB
 log.info('Update GRUB')
-chroot(['update-grub'])
+# update-grup is suspected to cause problems, so we just replace the  hsotname manually:
+#chroot(['update-grub'])
+ex(['sed', '-i', sed_ex, 'boot/grub/grub.cfg'])
 chroot(['update-initramfs', '-u', '-k', 'all'])
 
 # update system
