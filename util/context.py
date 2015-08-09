@@ -50,5 +50,5 @@ def setting(**kwargs):
 
     yield
 
-    for k, v in kwargs.items():
+    for k, v in old.items():
         setattr(settings, k, v)
