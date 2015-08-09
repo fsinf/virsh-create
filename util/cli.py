@@ -26,7 +26,7 @@ def ex(cmd, quiet=False, ignore_errors=False, dry=False):
         status = p.returncode
 
         if settings.SLEEP > 0:  # sleep for given number of seconds
-            log.debug('(Sleeping for %s seconds)')
+            log.debug('(Sleeping for %s seconds)' % settings.SLEEP)
             time.sleep(settings.SLEEP)
 
         if status != 0:
