@@ -28,7 +28,7 @@ log = logging.getLogger(__name__)
 
 
 def create_tls_cert(name):
-    log.info('Generate TLS machine certificate')
+    log.info('Generate TLS certificate')
     key = '/etc/ssl/private/%s.key' % name
     pem = '/etc/ssl/public/%s.pem' % name
     csr = '/etc/ssl/%s.csr' % name
