@@ -245,7 +245,7 @@ ex(['sed', '-i', 's/2001:629:3200:95::1:%s/%s/g' % (template_id, ipv6), interfac
 ex(['sed', '-i', 's/fc00::%s/%s/g' % (template_id, ipv6_priv), interfaces])
 
 # Update munin config-file:
-ex(['sed', '-i', 's/192.168.1.%s/%s/g' % (template_id, ipv4_priv), 'etc/munin/munin-node.conf'])
+ex(['sed', '-i', 's/fc00::%s/%s/g' % (template_id, ipv6_priv), 'etc/munin/munin-node.conf'])
 
 # Update MAC address
 log.info("Update MAC address")
