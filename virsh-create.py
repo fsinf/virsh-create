@@ -175,7 +175,7 @@ if not settings.DRY:
 mounted = []
 
 log.info('Detecting logical volumes')
-ex(['kpartx', '-a', bootdisk])  # Discover partitions on bootdisk
+ex(['kpartx', '-s', '-a', bootdisk])  # Discover partitions on bootdisk
 ex(['vgrename', 'vm_%s' % args.frm, lv_name])  # Rename volume group
 ex(['vgchange', '-a', 'y', lv_name])  # Activate volume group
 
@@ -302,7 +302,7 @@ if not settings.DRY:
 for mount in reversed(mounted):
     ex(['umount', mount])
 ex(['vgchange', '-a', 'n', lv_name])
-ex(['kpartx', '-d', bootdisk])
+ex(['kpartx', '-s', '-d', bootdisk])
 
 if not settings.DRY:
     log.debug('- rmdir %s', settings.CHROOT)
