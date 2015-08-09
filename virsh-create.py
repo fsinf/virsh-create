@@ -229,7 +229,7 @@ ex(['sed', '-i', sed_ex, 'etc/hostname'])
 ex(['sed', '-i', sed_ex, 'etc/hosts'])
 ex(['sed', '-i', sed_ex, 'etc/fstab'])
 ex(['sed', '-i', sed_ex, 'etc/mailname'])
-ex(['sed', '-i', sed_ex, 'etc/exim4/update-exim4.conf.conf'])
+ex(['sed', '-i', sed_ex, 'etc/postfix/main.cf'])
 
 # update cgabackup
 cga_config = 'etc/cgabackup/client.conf'
