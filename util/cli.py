@@ -1,5 +1,6 @@
 import logging
 import sys
+import time
 
 from subprocess import PIPE
 from subprocess import Popen
@@ -23,6 +24,10 @@ def ex(cmd, quiet=False, ignore_errors=False, dry=False):
         p = Popen(cmd, stdout=PIPE, stderr=PIPE)
         out, err = p.communicate()
         status = p.returncode
+
+        if settings.SLEEP > 0:  # sleep for given number of seconds
+            log.debug('(Sleeping for %s seconds)')
+            time.sleep(settings.SLEEP)
 
         if status != 0:
             if ignore_errors:
