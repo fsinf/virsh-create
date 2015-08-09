@@ -42,7 +42,7 @@ def prepare_sshd(tid, ipv6):
     log.info('rsa fingerprint: %s', ex(['ssh-keygen', '-lf', 'etc/ssh/ssh_host_rsa_key'])[0])
 
 
-def update_grup(sed_ex):
+def update_grub(sed_ex):
     log.info('Update GRUB')
     # update-grub is suspected to cause problems, so we just replace the hsotname manually
     # chroot(['update-grub'])
