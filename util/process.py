@@ -16,15 +16,62 @@
 
 from __future__ import unicode_literals
 
+import glob
 import logging
 import os
 
 from util import settings
 from util.cli import chroot
+from util.cli import ex
 from util.context import gid, umask
 from util.helpers import get_chroot_gid
 
 log = logging.getLogger(__name__)
+
+
+def prepare_sshd(tid, ipv6):
+    log.info('Preparing SSH daemon')
+    ex(['sed', '-i', 's/2001:629:3200:95::1:%s/%s/g' % (tid, ipv6), 'etc/ssh/sshd_config'])
+    log.debug('- rm /etc/ssh/ssh_host_*')
+    ex(['rm'] + glob.glob('etc/ssh/ssh_host_*'), quiet=True)
+    ex(['ssh-keygen', '-t', 'ed25519', '-f', 'etc/ssh/ssh_host_ed25519_key', '-N', ''])
+
+    ed25519_fp = ex(['ssh-keygen', '-lf', 'etc/ssh/ssh_host_ed25519_key'])[0]
+    log.info('ed25519 fingerprint: %s', ed25519_fp)
+    ex(['ssh-keygen', '-t', 'rsa', '-b', '4096', '-f', 'etc/ssh/ssh_host_rsa_key', '-N', ''])
+    log.info('rsa fingerprint: %s', ex(['ssh-keygen', '-lf', 'etc/ssh/ssh_host_rsa_key'])[0])
+
+
+def update_grup(sed_ex):
+    log.info('Update GRUB')
+    # update-grub is suspected to cause problems, so we just replace the hsotname manually
+    # chroot(['update-grub'])
+    ex(['sed', '-i', sed_ex, 'boot/grub/grub.cfg'])
+    chroot(['update-initramfs', '-u', '-k', 'all'])
+
+
+def update_system(kind):
+    log.info('Update system')
+    ex(['sed', '-i.backup', 's/http:\/\/%s.local/https:\/\/%s.fsinf.at/' % (kind, kind),
+        'etc/apt/sources.list'])
+    ex(['sed', '-i.backup', 's/apt.local/apt.fsinf.at/', 'etc/apt/sources.list.d/fsinf.list'])
+    chroot(['apt-get', 'update'])
+    chroot(['apt-get', '-y', 'dist-upgrade'])
+    ex(['mv', 'etc/apt/sources.list.backup', 'etc/apt/sources.list'])
+    ex(['mv', 'etc/apt/sources.list.d/fsinf.list.backup', 'etc/apt/sources.list.d/fsinf.list'])
+
+
+def create_ssh_client_keys(name, ipv4, ipv6, ipv4_priv, ipv6_priv):
+    log.info('Generate SSH client keys')
+    ex(['rm', '-f', 'root/.ssh/id_rsa', 'root/.ssh/id_rsa.pub'])  # remove any prexisting SSH keys
+
+    # Note: We force -t rsa, because we have to pass -f in order to be non-interactive
+    chroot(['ssh-keygen', '-t', 'rsa', '-q', '-N', '', '-f', '/root/.ssh/id_rsa', '-O',
+            'no-x11-forwarding', '-O',
+            'source-address=%s,%s,%s,%s' % (ipv4, ipv6, ipv4_priv, ipv6_priv)])
+
+    # fix hostname in public key:
+    chroot(['sed', '-i', 's/@[^@]*$/@%s/' % name, '/root/.ssh/id_rsa.pub'])
 
 
 def create_tls_cert(name):
@@ -35,7 +82,7 @@ def create_tls_cert(name):
     subject = 'subject="/C=AT/ST=Vienna/L=Vienna/CN=%s.local/"' % name
     ssl_cert_gid = get_chroot_gid('ssl-cert')
 
-    sign_cmd = 'fsinf-ca-sign --alt=%s.local --alt=%s4.local --alt=%s6.local --watch=<your email>' % (
+    sign = 'fsinf-ca-sign --alt=%s.local --alt=%s4.local --alt=%s6.local --watch=<your email>' % (
         name, name, name)
     with gid(ssl_cert_gid), umask(0277):
         chroot(['openssl', 'genrsa', '-out', key, '4096'])
@@ -43,7 +90,7 @@ def create_tls_cert(name):
     chroot(['openssl', 'req', '-new', '-key', key, '-out', csr, '-utf8',
             '-batch', '-sha256', '-subj', subject])
     log.critical('On enceladus, do:')
-    log.critical('\t%s' % sign_cmd)
+    log.critical('\t%s' % sign)
     log.critical('... and paste the CSR:')
     with open(os.path.join(settings.CHROOT, csr), 'r') as csr_file:
         csr_content = csr_file.read()

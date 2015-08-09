@@ -17,7 +17,6 @@
 from __future__ import unicode_literals
 
 import argparse
-import glob
 import logging
 import os
 import sys
@@ -26,6 +25,7 @@ from libvirtpy.conn import conn
 from libvirtpy.constants import DOMAIN_STATUS_SHUTOFF
 
 from util import lvm
+from util import process
 from util import settings
 from util.cli import ex
 from util.cli import chroot
@@ -251,42 +251,11 @@ log.info("Update MAC address")
 ex(['sed', '-i', 's/:%s/:%s/g' % (template_id, args.id),
     'etc/udev/rules.d/70-persistent-net.rules'])
 
-log.info('Preparing SSH daemon')
-ex(['sed', '-i', 's/2001:629:3200:95::1:%s/%s/g' % (template_id, ipv6), 'etc/ssh/sshd_config'])
-log.debug('- rm /etc/ssh/ssh_host_*')
-ex(['rm'] + glob.glob('etc/ssh/ssh_host_*'), quiet=True)
-ex(['ssh-keygen', '-t', 'ed25519', '-f', 'etc/ssh/ssh_host_ed25519_key', '-N', ''])
-log.info('ed25519 fingerprint: %s', ex(['ssh-keygen', '-lf', 'etc/ssh/ssh_host_ed25519_key'])[0])
-ex(['ssh-keygen', '-t', 'rsa', '-b', '4096', '-f', 'etc/ssh/ssh_host_rsa_key', '-N', ''])
-log.info('rsa fingerprint: %s', ex(['ssh-keygen', '-lf', 'etc/ssh/ssh_host_rsa_key'])[0])
-
-# Update GRUB
-log.info('Update GRUB')
-# update-grup is suspected to cause problems, so we just replace the  hsotname manually:
-#chroot(['update-grub'])
-ex(['sed', '-i', sed_ex, 'boot/grub/grub.cfg'])
-chroot(['update-initramfs', '-u', '-k', 'all'])
-
-# update system
-log.info('Update system')
-ex(['sed', '-i.backup', 's/http:\/\/%s.local/https:\/\/%s.fsinf.at/' % (args.kind, args.kind),
-    'etc/apt/sources.list'])
-ex(['sed', '-i.backup', 's/apt.local/apt.fsinf.at/', 'etc/apt/sources.list.d/fsinf.list'])
-chroot(['apt-get', 'update'])
-chroot(['apt-get', '-y', 'dist-upgrade'])
-ex(['mv', 'etc/apt/sources.list.backup', 'etc/apt/sources.list'])
-ex(['mv', 'etc/apt/sources.list.d/fsinf.list.backup', 'etc/apt/sources.list.d/fsinf.list'])
-
-# generate SSH key
-log.info('Generate SSH client keys')
-ex(['rm', '-f', 'root/.ssh/id_rsa', 'root/.ssh/id_rsa.pub'])  # remove any prexisting SSH keys
-# Note: We force -t rsa, because we have to pass -f in order to be non-interactive
-chroot(['ssh-keygen', '-t', 'rsa', '-q', '-N', '', '-f', '/root/.ssh/id_rsa', '-O',
-        'no-x11-forwarding', '-O',
-        'source-address=%s,%s,%s,%s' % (ipv4, ipv6, ipv4_priv, ipv6_priv)])
-
-# fix hostname in public key:
-chroot(['sed', '-i', 's/@[^@]*$/@%s/' % args.name, '/root/.ssh/id_rsa.pub'])
+process.prepare_sshd(template_id, ipv6)
+process.update_grub(sed_ex)
+process.update_system(args.kind)
+process.create_ssh_client_keys(args.name, ipv4, ipv6, ipv4_priv, ipv6_priv)
+process.create_tls_cert(args.name)
 
 ###########
 # CLEANUP #
