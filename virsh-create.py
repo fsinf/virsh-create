@@ -24,11 +24,12 @@ import sys
 from libvirtpy.conn import conn
 from libvirtpy.constants import DOMAIN_STATUS_SHUTOFF
 
+from util import context
 from util import lvm
 from util import process
 from util import settings
-from util.cli import ex
 from util.cli import chroot
+from util.cli import ex
 
 log = logging.getLogger(__name__)
 
@@ -175,9 +176,10 @@ if not settings.DRY:
 mounted = []
 
 log.info('Detecting logical volumes')
-ex(['kpartx', '-s', '-a', bootdisk])  # Discover partitions on bootdisk
-ex(['vgrename', 'vm_%s' % args.frm, lv_name])  # Rename volume group
-ex(['vgchange', '-a', 'y', lv_name])  # Activate volume group
+with context.setting(SLEEP=3):
+    ex(['kpartx', '-s', '-a', bootdisk])  # Discover partitions on bootdisk
+    ex(['vgrename', 'vm_%s' % args.frm, lv_name])  # Rename volume group
+    ex(['vgchange', '-a', 'y', lv_name])  # Activate volume group
 
 log.info('Mounting logical volumes...')
 ex(['mount', os.path.join('/dev', lv_name, 'root'), settings.CHROOT])
@@ -269,8 +271,10 @@ if not settings.DRY:
 
 for mount in reversed(mounted):
     ex(['umount', mount])
-ex(['vgchange', '-a', 'n', lv_name])
-ex(['kpartx', '-s', '-d', bootdisk])
+
+with context.setting(SLEEP=3):
+    ex(['vgchange', '-a', 'n', lv_name])
+    ex(['kpartx', '-s', '-d', bootdisk])
 
 if not settings.DRY:
     log.debug('- rmdir %s', settings.CHROOT)
