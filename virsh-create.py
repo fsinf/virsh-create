@@ -252,8 +252,8 @@ log.info("Update MAC address")
 ex(['sed', '-i', 's/:%s/:%s/g' % (template_id, args.id),
     'etc/udev/rules.d/70-persistent-net.rules'])
 
-# Regenerate SSH server key
-log.info('Regenerate SSH key')
+log.info('Preparing SSH daemon')
+ex(['sed', '-i', 's/2001:629:3200:95::1:%s/%s/g' % (template_id, ipv6), 'etc/ssh/sshd_config'])
 log.debug('- rm /etc/ssh/ssh_host_*')
 ex(['rm'] + glob.glob('etc/ssh/ssh_host_*'), quiet=True)
 ex(['ssh-keygen', '-t', 'ed25519', '-f', 'etc/ssh/ssh_host_ed25519_key', '-N', ''])
@@ -279,7 +279,7 @@ ex(['mv', 'etc/apt/sources.list.backup', 'etc/apt/sources.list'])
 ex(['mv', 'etc/apt/sources.list.d/fsinf.list.backup', 'etc/apt/sources.list.d/fsinf.list'])
 
 # generate SSH key
-log.info('Generate SSH client keys for backups')
+log.info('Generate SSH client keys')
 ex(['rm', '-f', 'root/.ssh/id_rsa', 'root/.ssh/id_rsa.pub'])  # remove any prexisting SSH keys
 # Note: We force -t rsa, because we have to pass -f in order to be non-interactive
 chroot(['ssh-keygen', '-t', 'rsa', '-q', '-N', '', '-f', '/root/.ssh/id_rsa', '-O',
