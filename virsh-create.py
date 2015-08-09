@@ -37,7 +37,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-f', '--from', default="jessie", metavar='VM', dest='frm',
                     help="Virtual machine to clone from (Default: %(default)s)")
 parser.add_argument('--desc', default='',
-                   help="Description for the new virtual machine")
+                    help="Description for the new virtual machine")
 parser.add_argument('--kind', default='debian', choices=('debian', 'ubuntu', ),
                     help="Set to 'ubuntu' if this is a Ubuntu and not a Debian template.")
 parser.add_argument('--mem', default=1.0, type=float,
@@ -62,9 +62,9 @@ logging.basicConfig(
 # common configuration:
 settings.DRY = args.dry
 
-###########################
-### Variable definition ###
-###########################
+#######################
+# Variable definition #
+#######################
 # define some variables
 lv_name = 'vm_%s' % args.name
 ipv4 = '128.130.95.%s' % args.id
@@ -73,9 +73,9 @@ ipv4_priv = '192.168.1.%s' % args.id
 ipv6_priv = 'fc00::%s' % args.id
 vncport = int('59%s' % args.id)
 
-##########################
-### BASIC SANITY TESTS ###
-##########################
+######################
+# BASIC SANITY TESTS #
+######################
 if os.getuid() != 0:  # check if we are root
     log.error('Error: You need to be root to create a virtual machine.')
     sys.exit(1)
@@ -85,9 +85,9 @@ if os.path.exists(settings.CHROOT):
 
 log.debug('Creating VM %s...', args.name)
 
-#############################
-### LIBVIRT SANITY CHECKS ###
-#############################
+#########################
+# LIBVIRT SANITY CHECKS #
+#########################
 # get template domain:
 template = conn.getDomain(name=args.frm)
 if template.status != DOMAIN_STATUS_SHUTOFF:
@@ -106,9 +106,9 @@ if os.path.exists(bootdisk_path):
     log.error("Error: %s already exists", bootdisk_path)
     sys.exit(1)
 
-##########################
-### LVM SANITIY CHECKS ###
-##########################
+######################
+# LVM SANITIY CHECKS #
+######################
 # get a list of logical volumes (so we can verify it doesn't exist yet)
 lvs = {(lv.vg, lv.name): lv for lv in lvm.lvs()}  # list of all logical volumes
 
@@ -123,9 +123,9 @@ for path in template.getDiskPaths():
         sys.exit(1)
     lv_mapping[(lv.vg, lv.name)] = (lv.vg, new_lv_name)
 
-#####################
-### COPY TEMPLATE ###
-#####################
+#################
+# COPY TEMPLATE #
+#################
 # finally get the full xml of the template
 log.info("Copying libvirt XML configuration...")
 domain = template.copy()
@@ -142,9 +142,9 @@ domain.fix_macs(args.id)
 #vf = conn.getVirtualFunction()
 #domain.setVirtualFunction(*vf)
 
-##################
-### Copy disks ###
-##################
+##############
+# Copy disks #
+##############
 for path in template.getDiskPaths():
     # create logical volume
     lv = lvm.lvdisplay(path)
@@ -159,16 +159,16 @@ for path in template.getDiskPaths():
     log.info("Copying LV %s to %s", path, new_path)
     ex(['dd', 'if=%s' % path, 'of=%s' % new_path, 'bs=4M'])
 
-################################
-### Define domain in libvirt ###
-################################
+############################
+# Define domain in libvirt #
+############################
 log.info('Load new libvirt XML configuration')
 if not settings.DRY:
     conn.loadXML(domain.xml)
 
-#############################
-### MOUNT ROOT FILESYSTEM ###
-#############################
+#########################
+# MOUNT ROOT FILESYSTEM #
+#########################
 bootdisk = domain.getBootDisk()
 if not settings.DRY:
     os.makedirs(settings.CHROOT)
@@ -202,9 +202,9 @@ for typ, dev, target in pseudo_filesystems:
     ex(['mount', '-t', typ, dev, target])
     mounted.append(target)
 
-#########################
-### MODIFY FILESYSTEM ###
-#########################
+#####################
+# MODIFY FILESYSTEM #
+#####################
 sed_ex = 's/%s/%s/g' % (args.frm, args.name)
 
 # create a file that disables restarting of services:
@@ -289,9 +289,9 @@ chroot(['ssh-keygen', '-t', 'rsa', '-q', '-N', '', '-f', '/root/.ssh/id_rsa', '-
 # fix hostname in public key:
 chroot(['sed', '-i', 's/@[^@]*$/@%s/' % args.name, '/root/.ssh/id_rsa.pub'])
 
-###############
-### CLEANUP ###
-###############
+###########
+# CLEANUP #
+###########
 log.info('Done, cleaning up.')
 ex(['rm', policy_d, bootdisk_path])
 chroot(['mv', '/etc/resolv.conf.backup', '/etc/resolv.conf'])
