@@ -186,7 +186,6 @@ for dir in ['boot', 'home', 'usr', 'var', 'tmp']:
     dev = '/dev/%s/%s' % (lv_name, dir)
     if os.path.exists(dev):
         mytarget = os.path.join(settings.CHROOT, dir)
-        log.info('... mount %s %s', dev, mytarget)
         ex(['mount', dev, mytarget])
         mounted.append(mytarget)
 
