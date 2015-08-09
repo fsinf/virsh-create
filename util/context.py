@@ -42,7 +42,7 @@ def umask(mask):
 
 
 @contextmanager
-def setting(*kwargs):
+def setting(**kwargs):
     old = {}
     for k, v in kwargs.items():
         old[k] = getattr(settings, k, None)
