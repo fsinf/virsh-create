@@ -91,10 +91,9 @@ def create_tls_cert(name):
             '-batch', '-sha256', '-subj', subject])
     log.critical('On enceladus, do:')
     log.critical('\t%s' % sign)
-    log.critical('... and paste the CSR:')
     with open(os.path.join(settings.CHROOT, csr.lstrip('/')), 'r') as csr_file:
         csr_content = csr_file.read()
-    log.critical(csr_content)
+    log.critical('... and paste the CSR:\n%s' % csr_content)
 
     # read certificate
     cert_content = ''
