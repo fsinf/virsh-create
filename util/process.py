@@ -79,7 +79,7 @@ def cleanup_homes():
 
     homes = ['root']
     homes += [os.path.join('home', d) for d
-              in os.path.listdir(os.path.join(settings.CHROOT, 'home'))]
+              in os.listdir(os.path.join(settings.CHROOT, 'home'))]
     for homedir in homes:
         path = os.path.join(settings.CHROOT, homedir)
         if not os.path.isdir(path):
