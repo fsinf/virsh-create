@@ -79,7 +79,7 @@ def create_tls_cert(name):
     key = '/etc/ssl/private/%s.key' % name
     pem = '/etc/ssl/public/%s.pem' % name
     csr = '/etc/ssl/%s.csr' % name
-    subject = 'subject="/C=AT/ST=Vienna/L=Vienna/CN=%s.local/"' % name
+    subject = '/C=AT/ST=Vienna/L=Vienna/CN=%s.local/' % name
     ssl_cert_gid = get_chroot_gid('ssl-cert')
 
     sign = 'fsinf-ca-sign --alt=%s.local --alt=%s4.local --alt=%s6.local --watch=<your email>' % (
