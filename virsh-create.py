@@ -253,6 +253,7 @@ log.info("Update MAC address")
 ex(['sed', '-i', 's/:%s/:%s/g' % (template_id, args.id),
     'etc/udev/rules.d/70-persistent-net.rules'])
 
+process.cleanup_homes()
 process.prepare_sshd(template_id, ipv6)
 process.update_grub(sed_ex)
 process.update_system(args.kind)

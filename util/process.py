@@ -74,6 +74,23 @@ def create_ssh_client_keys(name, ipv4, ipv6, ipv4_priv, ipv6_priv):
     chroot(['sed', '-i', 's/@[^@]*$/@%s/' % name, '/root/.ssh/id_rsa.pub'])
 
 
+def cleanup_homes():
+    """Remove various sensitive files from users home directories."""
+
+    homes = ['root']
+    homes += [os.path.join('home', d) for d
+              in os.path.listdir(os.path.join(settings.CHROOT, 'home'))]
+    for homedir in homes:
+        path = os.path.join(settings.CHROOT, homedir)
+        if not os.path.isdir(path):
+            continue
+        log.info('checking %s...', path)
+        for filename in ['.bash_history', '.lesshst', '.viminfo', '.rnd', '.histfile', ]:
+            filepath = os.path.join(path, filename)
+            if os.path.exists(filepath):
+                log.info('Removing %s', filepath)
+                os.remove(filepath)
+
 def create_tls_cert(name):
     log.info('Generate TLS certificate')
     key = '/etc/ssl/private/%s.local.key' % name
