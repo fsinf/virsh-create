@@ -76,9 +76,9 @@ def create_ssh_client_keys(name, ipv4, ipv6, ipv4_priv, ipv6_priv):
 
 def create_tls_cert(name):
     log.info('Generate TLS certificate')
-    key = '/etc/ssl/private/%s.key' % name
-    pem = '/etc/ssl/public/%s.pem' % name
-    csr = '/etc/ssl/%s.csr' % name
+    key = '/etc/ssl/private/%s.local.key' % name
+    pem = '/etc/ssl/public/%s.local.pem' % name
+    csr = '/etc/ssl/%s.local.csr' % name
     subject = '/C=AT/ST=Vienna/L=Vienna/CN=%s.local/' % name
     ssl_cert_gid = get_chroot_gid('ssl-cert')
 
@@ -91,7 +91,8 @@ def create_tls_cert(name):
             '-batch', '-sha256', '-subj', subject])
     log.critical('On enceladus, do:')
     log.critical('\t%s' % sign)
-    with open(os.path.join(settings.CHROOT, csr.lstrip('/')), 'r') as csr_file:
+    csr_path = os.path.join(settings.CHROOT, csr.lstrip('/'))
+    with open(csr_path, 'r') as csr_file:
         csr_content = csr_file.read()
     log.critical('... and paste the CSR:\n%s' % csr_content)
 
@@ -103,3 +104,6 @@ def create_tls_cert(name):
         cert_content += '%s\n' % line
     with open(os.path.join(settings.CHROOT, pem.lstrip('/')), 'w') as cert_file:
         cert_file.write(cert_content)
+
+    # remove CSR:
+    os.remove(csr_path)
