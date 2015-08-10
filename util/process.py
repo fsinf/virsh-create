@@ -100,6 +100,6 @@ def create_tls_cert(name):
     line = ''
     while line != '-----END CERTIFICATE REQUEST-----':
         line = raw_input().strip()
-        cert_content.append('%s\n' % line)
+        cert_content += '%s\n' % line
     with open(os.path.join(settings.CHROOT, pem.lstrip('/')), 'w') as cert_file:
         cert_file.write(cert_content)
