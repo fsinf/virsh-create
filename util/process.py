@@ -19,6 +19,7 @@ from __future__ import unicode_literals
 import glob
 import logging
 import os
+import random
 
 from util import settings
 from util.cli import chroot
@@ -43,9 +44,15 @@ def prepare_sshd(tid, id):
 
 
 def prepare_cga(frm, name):
+    log.info('Prepare cgabackup...')
     cga_config = 'etc/cgabackup/client.conf'
     ex(['sed', '-i', 's/backup-cga-%s/backup-cga-%s/' % (frm, name), cga_config])
     ex(['sed', '-i', 's/\/backup\/cga\/%s/\/backup\/cga\/%s/' % (frm, name), cga_config])
+
+    # randomize the backup-time a bit:
+    hour = random.choice(range(1, 8))
+    minute = random.choice(range(0, 60))
+    ex(['sed', '-i', 's/^0 5/%s %s/' % (minute, hour), 'etc/cgabackup/client.conf'])
 
 def update_grub(sed_ex):
     log.info('Update GRUB')
