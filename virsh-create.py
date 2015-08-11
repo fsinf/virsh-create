@@ -254,7 +254,7 @@ ex(['sed', '-i', 's/:%s/:%s/g' % (template_id, args.id),
     'etc/udev/rules.d/70-persistent-net.rules'])
 
 process.cleanup_homes()
-process.prepare_sshd(template_id, ipv6)
+process.prepare_sshd(template_id, args.id)
 process.update_grub(sed_ex)
 process.update_system(args.kind)
 process.create_ssh_client_keys(args.name, ipv4, ipv6, ipv4_priv, ipv6_priv)

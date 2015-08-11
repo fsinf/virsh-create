@@ -29,9 +29,9 @@ from util.helpers import get_chroot_gid
 log = logging.getLogger(__name__)
 
 
-def prepare_sshd(tid, ipv6):
+def prepare_sshd(tid, id):
     log.info('Preparing SSH daemon')
-    ex(['sed', '-i', 's/2001:629:3200:95::1:%s/%s/g' % (tid, ipv6), 'etc/ssh/sshd_config'])
+    ex(['sed', '-i', 's/fc00::%s/fcoo::%s/g' % (tid, id), 'etc/ssh/sshd_config'])
     log.debug('- rm /etc/ssh/ssh_host_*')
     ex(['rm'] + glob.glob('etc/ssh/ssh_host_*'), quiet=True)
     ex(['ssh-keygen', '-t', 'ed25519', '-f', 'etc/ssh/ssh_host_ed25519_key', '-N', ''])
