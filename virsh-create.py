@@ -233,9 +233,7 @@ ex(['sed', '-i', sed_ex, 'etc/mailname'])
 ex(['sed', '-i', sed_ex, 'etc/postfix/main.cf'])
 
 # update cgabackup
-cga_config = 'etc/cgabackup/client.conf'
-ex(['sed', '-i', 's/backup-cga-%s/backup-cga-%s/' % (args.frm, args.name), cga_config])
-ex(['sed', '-i', 's/\/backup\/cga\/%s/\/backup\/cga\/%s/' % (args.frm, args.name), cga_config])
+process.prepare_cga(args.frm, args.name)
 
 # Update IP-addresses
 log.info('Update IP addresses')
