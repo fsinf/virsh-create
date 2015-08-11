@@ -52,7 +52,7 @@ def prepare_cga(frm, name):
     # randomize the backup-time a bit:
     hour = random.choice(range(1, 8))
     minute = random.choice(range(0, 60))
-    ex(['sed', '-i', 's/^0 5/%s %s/' % (minute, hour), 'etc/cgabackup/client.conf'])
+    ex(['sed', '-i', 's/^0 5/%s %s/' % (minute, hour), 'etc/cron.d/cgabackup'])
 
 def update_grub(sed_ex):
     log.info('Update GRUB')
