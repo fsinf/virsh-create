@@ -76,7 +76,7 @@ def update_system(kind):
 def create_ssh_client_keys(name, ipv4, ipv6, ipv4_priv, ipv6_priv):
     log.info('Generate SSH client keys')
     rsa, ed25519 = '/root/.ssh/id_rsa', '/root/.ssh/id_ed25519'
-    rsa_pub, ed25519_pub = os.path.splitext(rsa)[0], os.path.splitext(ed25519)[0]
+    rsa_pub, ed25519_pub = '%s.pub' % rsa, '%s.pub' % ed25519
     sources = (ipv4, ipv6, ipv4_priv, ipv6_priv)
 
     # remove any prexisting SSH keys
