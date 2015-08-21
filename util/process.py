@@ -54,6 +54,7 @@ def prepare_cga(frm, name):
     minute = random.choice(range(0, 60))
     ex(['sed', '-i', 's/^0 5/%s %s/' % (minute, hour), 'etc/cron.d/cgabackup'])
 
+
 def update_grub(sed_ex):
     log.info('Update GRUB')
     # update-grub is suspected to cause problems, so we just replace the hsotname manually
@@ -77,7 +78,7 @@ def create_ssh_client_keys(name, ipv4, ipv6, ipv4_priv, ipv6_priv):
     log.info('Generate SSH client keys')
     rsa, ed25519 = '/root/.ssh/id_rsa', '/root/.ssh/id_ed25519'
     rsa_pub, ed25519_pub = '%s.pub' % rsa, '%s.pub' % ed25519
-    sources = (ipv4, ipv6, ipv4_priv, ipv6_priv)
+    ips = (ipv4, ipv6, ipv4_priv, ipv6_priv)
 
     # remove any prexisting SSH keys
     chroot(['rm', '-f', rsa, rsa_pub, ed25519, ed25519_pub])
@@ -88,8 +89,8 @@ def create_ssh_client_keys(name, ipv4, ipv6, ipv4_priv, ipv6_priv):
 
     for pub in [rsa_pub, ed25519_pub]:
         # Add limiting options:
-        chroot(['sed', '-i', 's/^/source-address="%s,%s,%s,%s",no-x11-forwarding /' % sources, pub])
-        chroot(['sed', '-i', 's/@[^@]*$/@%s/' % name, pub]) # fix hostname in public keys:
+        chroot(['sed', '-i', 's/^/source-address="%s,%s,%s,%s",no-x11-forwarding /' % ips, pub])
+        chroot(['sed', '-i', 's/@[^@]*$/@%s/' % name, pub])  # fix hostname in public keys
 
 
 def cleanup_homes():
@@ -108,6 +109,7 @@ def cleanup_homes():
             if os.path.exists(filepath):
                 log.info('Removing %s', filepath)
                 os.remove(filepath)
+
 
 def create_tls_cert(name):
     log.info('Generate TLS certificate')
