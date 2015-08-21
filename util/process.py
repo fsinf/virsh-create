@@ -75,15 +75,26 @@ def update_system(kind):
 
 def create_ssh_client_keys(name, ipv4, ipv6, ipv4_priv, ipv6_priv):
     log.info('Generate SSH client keys')
-    ex(['rm', '-f', 'root/.ssh/id_rsa', 'root/.ssh/id_rsa.pub'])  # remove any prexisting SSH keys
+    rsa_pub = '/root/.ssh/id_rsa.pub'
+    ed25519_pub = '/root/.ssh/id_ed25519.pub'
+    sources = (ipv4, ipv6, ipv4_priv, ipv6_priv)
+
+    # remove any prexisting SSH keys
+    chroot(['rm', '-f', '/root/.ssh/id_rsa', rsa_pub, '/root/.ssh/id_ed25519', ed25519_pub])
 
     # Note: We force -t rsa, because we have to pass -f in order to be non-interactive
-    chroot(['ssh-keygen', '-t', 'rsa', '-q', '-N', '', '-f', '/root/.ssh/id_rsa', '-O',
-            'no-x11-forwarding', '-O',
-            'source-address=%s,%s,%s,%s' % (ipv4, ipv6, ipv4_priv, ipv6_priv)])
+    chroot(['ssh-keygen', '-t', 'rsa',     '-q', '-N', '', '-o', '-a', '100', '-b', '4096',
+            '-f', '/root/.ssh/id_rsa'])
+    chroot(['ssh-keygen', '-t', 'ed25519', '-q', '-N', '', '-o', '-a', '100',
+            '-f', '/root/.ssh/id_ed25519'])
 
-    # fix hostname in public key:
-    chroot(['sed', '-i', 's/@[^@]*$/@%s/' % name, '/root/.ssh/id_rsa.pub'])
+    # Add limiting options:
+    chroot(['sed', '-i', 's/^/source-address="%s,%s,%s,%s",no-x11-forwarding/' % sources, rsa_pub])
+    chroot(['sed', '-i', 's/^/source-address="%s,%s,%s,%s",no-x11-forwarding/' % sources, ed25519_pub])
+
+    # fix hostname in public keys:
+    chroot(['sed', '-i', 's/@[^@]*$/@%s/' % name, rsa_pub])
+    chroot(['sed', '-i', 's/@[^@]*$/@%s/' % name, ed25519_pub])
 
 
 def cleanup_homes():
