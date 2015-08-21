@@ -88,7 +88,7 @@ def create_ssh_client_keys(name, ipv4, ipv6, ipv4_priv, ipv6_priv):
 
     for pub in [rsa_pub, ed25519_pub]:
         # Add limiting options:
-        chroot(['sed', '-i', 's/^/source-address="%s,%s,%s,%s",no-x11-forwarding/' % sources, pub])
+        chroot(['sed', '-i', 's/^/source-address="%s,%s,%s,%s",no-x11-forwarding /' % sources, pub])
         chroot(['sed', '-i', 's/@[^@]*$/@%s/' % name, pub]) # fix hostname in public keys:
 
 
