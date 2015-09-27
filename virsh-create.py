@@ -256,7 +256,7 @@ ex(['sed', '-i', 's/fd00::%s/%s/g' % (template_id, ipv6_priv), 'etc/munin/munin-
 
 # Update MAC address
 log.info("Update MAC address")
-ex(['sed', '-i', 's/:%s/:%s/g' % (template_id, args.id),
+ex(['sed', '-i', '/NAME="eth0"/s/ATTR{address}=="[^"]*"/%s/g' % mac,
     'etc/udev/rules.d/70-persistent-net.rules'])
 
 process.cleanup_homes()
