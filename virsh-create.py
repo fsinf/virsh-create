@@ -255,10 +255,7 @@ ex(['sed', '-i', 's/fd00::%s/%s/g' % (template_id, ipv6_priv), interfaces])
 ex(['sed', '-i', 's/fd00::%s/%s/g' % (template_id, ipv6_priv), 'etc/munin/munin-node.conf'])
 
 # Update MAC address
-log.info("Update MAC address")
-ex(['sed', '-i', '/NAME="eth0"/s/ATTR{address}=="[^"]*"/%s/g' % mac,
-    'etc/udev/rules.d/70-persistent-net.rules'])
-
+process.update_macs(mac, mac_priv)
 process.cleanup_homes()
 process.prepare_sshd(template_id, args.id)
 process.update_grub(sed_ex)
