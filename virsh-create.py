@@ -16,6 +16,7 @@
 
 from __future__ import unicode_literals
 
+import ConfigParser
 import argparse
 import logging
 import os
@@ -52,6 +53,11 @@ parser.add_argument('name', help="Name of the new virtual machine")
 parser.add_argument(
     'id', type=int, help="Id of the virtual machine. Used for VNC-port, MAC-address and IP")
 args = parser.parse_args()
+
+# parse local machine dependent configuration
+config = ConfigParser.ConfigParser()
+config.read('virsh-create.conf')
+vmhost_id = config.get('DEFAULT', 'vmhost_id')
 
 # configure logging
 logging.basicConfig(
