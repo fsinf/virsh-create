@@ -74,8 +74,10 @@ settings.DRY = args.dry
 #######################
 # define some variables
 lv_name = 'vm_%s' % args.name
+mac = '02:25:90:%s:00:%s' % (vmhost_id, args.id)
 ipv4 = '128.130.95.%s' % args.id
 ipv6 = '2001:629:3200:95::1:%s' % args.id
+mac_priv = '02:25:90:%s:01:%s' % (vmhost_id, args.id)
 ipv4_priv = '192.168.1.%s' % args.id
 ipv6_priv = 'fd00::%s' % args.id
 vncport = int('59%s' % args.id)
