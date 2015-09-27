@@ -34,6 +34,7 @@ def update_macs(mac, mac_priv):
     log.info("Update MAC addresses")
     rules = 'etc/udev/rules.d/70-persistent-net.rules'
     ex(['sed', '-i', '/NAME="eth0"/s/ATTR{address}=="[^"]*"/%s/g' % mac, rules])
+    ex(['sed', '-i', '/NAME="eth1"/s/ATTR{address}=="[^"]*"/%s/g' % mac_priv, rules])
 
 
 def prepare_sshd(tid, id):
