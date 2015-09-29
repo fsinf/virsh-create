@@ -39,11 +39,12 @@ def update_macs(mac, mac_priv):
 
 def update_ips(template_id, ipv4, ipv4_priv, ipv6, ipv6_priv):
     log.info('Update IP addresses')
-    interfaces = 'etc/network/interfaces'
-    ex(['sed', '-i', 's/128.130.95.%s/%s/g' % (template_id, ipv4), interfaces])
-    ex(['sed', '-i', 's/192.168.1.%s/%s/g' % (template_id, ipv4_priv), interfaces])
-    ex(['sed', '-i', 's/2001:629:3200:95::1:%s/%s/g' % (template_id, ipv6), interfaces])
-    ex(['sed', '-i', 's/fd00::%s/%s/g' % (template_id, ipv6_priv), interfaces])
+    eth0 = 'etc/network/interfaces/eth0'
+    eth1 = 'etc/network/interfaces/eth1'
+    ex(['sed', '-i', 's/128.130.95.%s/%s/g' % (template_id, ipv4), eth0])
+    ex(['sed', '-i', 's/192.168.1.%s/%s/g' % (template_id, ipv4_priv), eth1])
+    ex(['sed', '-i', 's/2001:629:3200:95::1:%s/%s/g' % (template_id, ipv6), eth0])
+    ex(['sed', '-i', 's/fd00::%s/%s/g' % (template_id, ipv6_priv), eth1])
 
     # Update munin config-file:
     ex(['sed', '-i', 's/fd00::%s/%s/g' % (template_id, ipv6_priv), 'etc/munin/munin-node.conf'])
