@@ -103,7 +103,10 @@ def create_ssh_client_keys(name, ipv4, ipv6, ipv4_priv, ipv6_priv):
 def cleanup_homes():
     """Remove various sensitive files from users home directories."""
 
+    log.info('Cleaning up home directories')
     homes = ['root']
+    if settings.DRY:
+        return
     homes += [os.path.join('home', d) for d
               in os.listdir(os.path.join(settings.CHROOT, 'home'))]
     for homedir in homes:
