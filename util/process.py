@@ -139,18 +139,25 @@ def create_tls_cert(name):
     log.critical('On enceladus, do:')
     log.critical('\t%s' % sign)
     csr_path = os.path.join(settings.CHROOT, csr.lstrip('/'))
-    with open(csr_path, 'r') as csr_file:
-        csr_content = csr_file.read()
+    if settings.DRY:
+        csr_content = '<csr-content>'
+    else:
+        with open(csr_path, 'r') as csr_file:
+            csr_content = csr_file.read()
     log.critical('... and paste the CSR:\n%s' % csr_content)
 
     # read certificate
     cert_content = ''
     line = ''
-    while line != '-----END CERTIFICATE-----':
-        line = raw_input().strip()
-        cert_content += '%s\n' % line
-    with open(os.path.join(settings.CHROOT, pem.lstrip('/')), 'w') as cert_file:
-        cert_file.write(cert_content)
+    if settings.dry:
+        log.info('... reading public certificate')
+    else:
+        while line != '-----END CERTIFICATE-----':
+            line = raw_input().strip()
+            cert_content += '%s\n' % line
 
-    # remove CSR:
-    os.remove(csr_path)
+        with open(os.path.join(settings.CHROOT, pem.lstrip('/')), 'w') as cert_file:
+            cert_file.write(cert_content)
+
+        # remove CSR:
+        os.remove(csr_path)
