@@ -39,8 +39,8 @@ def update_macs(mac, mac_priv):
 
 def update_ips(template_id, ipv4, ipv4_priv, ipv6, ipv6_priv):
     log.info('Update IP addresses')
-    eth0 = 'etc/network/interfaces/eth0'
-    eth1 = 'etc/network/interfaces/eth1'
+    eth0 = 'etc/network/interfaces.d/eth0'
+    eth1 = 'etc/network/interfaces.d/eth1'
     ex(['sed', '-i', 's/128.130.95.%s/%s/g' % (template_id, ipv4), eth0])
     ex(['sed', '-i', 's/192.168.1.%s/%s/g' % (template_id, ipv4_priv), eth1])
     ex(['sed', '-i', 's/2001:629:3200:95::1:%s/%s/g' % (template_id, ipv6), eth0])
