@@ -25,6 +25,8 @@ log = logging.getLogger(__name__)
 
 
 def get_chroot_gid(name):
+    if settings.DRY:
+        return -1
     with open(os.path.join(settings.CHROOT, 'etc/group'), 'r') as file:
         lines = file.readlines()
     line = [l for l in lines if l.startswith('%s:' % name)][0]
