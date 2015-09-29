@@ -111,7 +111,7 @@ if args.name in [d.name for d in conn.getAllDomains()]:
 # path to bootdisk, including chroot prefix, e.g. /target/dev/vda
 bootdisk_path = os.path.join('/dev', template.getBootTarget())
 
-if os.path.exists(bootdisk_path):
+if os.path.lexists(bootdisk_path):
     log.error("Error: %s already exists", bootdisk_path)
     sys.exit(1)
 
