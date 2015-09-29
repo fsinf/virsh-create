@@ -8,3 +8,4 @@
 /pip-selfcheck.json
 *.sw[op]
 *.py[co]
+/virsh-create.conf
