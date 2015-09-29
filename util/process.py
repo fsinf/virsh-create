@@ -140,11 +140,11 @@ def create_tls_cert(name):
     log.critical('\t%s' % sign)
     csr_path = os.path.join(settings.CHROOT, csr.lstrip('/'))
     if settings.DRY:
-        csr_content = '<csr-content>'
+        log.info('... reading CSR content')
     else:
         with open(csr_path, 'r') as csr_file:
             csr_content = csr_file.read()
-    log.critical('... and paste the CSR:\n%s' % csr_content)
+        log.critical('... and paste the CSR:\n%s' % csr_content)
 
     # read certificate
     cert_content = ''
