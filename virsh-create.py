@@ -174,18 +174,13 @@ log.info('Load new libvirt XML configuration')
 if not settings.DRY:
     conn.loadXML(domain.xml)
 
-#########################
-# MOUNT ROOT FILESYSTEM #
-#########################
-bootdisk = domain.getBootDisk()
-if not settings.DRY:
-    os.makedirs(settings.CHROOT)
 
 #####################
 # MODIFY FILESYSTEM #
 #####################
 sed_ex = 's/%s/%s/g' % (args.frm, args.name)
 
+bootdisk = domain.getBootDisk()
 with process.mount(args.frm, lv_name, bootdisk, bootdisk_path):
     # copy /etc/resolv.conf, so that e.g. apt-get update works
     ex(['cp', '-S', '.backup', '-ba', '/etc/resolv.conf', 'etc/resolv.conf'])
