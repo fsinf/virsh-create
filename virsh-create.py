@@ -240,21 +240,8 @@ ex(['sed', '-i', sed_ex, 'etc/fstab'])
 ex(['sed', '-i', sed_ex, 'etc/mailname'])
 ex(['sed', '-i', sed_ex, 'etc/postfix/main.cf'])
 
-# update cgabackup
 process.prepare_cga(args.frm, args.name)
-
-# Update IP-addresses
-log.info('Update IP addresses')
-interfaces = 'etc/network/interfaces'
-ex(['sed', '-i', 's/128.130.95.%s/%s/g' % (template_id, ipv4), interfaces])
-ex(['sed', '-i', 's/192.168.1.%s/%s/g' % (template_id, ipv4_priv), interfaces])
-ex(['sed', '-i', 's/2001:629:3200:95::1:%s/%s/g' % (template_id, ipv6), interfaces])
-ex(['sed', '-i', 's/fd00::%s/%s/g' % (template_id, ipv6_priv), interfaces])
-
-# Update munin config-file:
-ex(['sed', '-i', 's/fd00::%s/%s/g' % (template_id, ipv6_priv), 'etc/munin/munin-node.conf'])
-
-# Update MAC address
+process.update_ips(template_id, ipv4, ipv4_priv, ipv6, ipv6_priv)
 process.update_macs(mac, mac_priv)
 process.cleanup_homes()
 process.prepare_sshd(template_id, args.id)

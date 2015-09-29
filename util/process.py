@@ -37,6 +37,17 @@ def update_macs(mac, mac_priv):
     ex(['sed', '-i', '/NAME="eth1"/s/ATTR{address}=="[^"]*"/%s/g' % mac_priv, rules])
 
 
+def update_ips(template_id, ipv4, ipv4_priv, ipv6, ipv6_priv):
+    log.info('Update IP addresses')
+    interfaces = 'etc/network/interfaces'
+    ex(['sed', '-i', 's/128.130.95.%s/%s/g' % (template_id, ipv4), interfaces])
+    ex(['sed', '-i', 's/192.168.1.%s/%s/g' % (template_id, ipv4_priv), interfaces])
+    ex(['sed', '-i', 's/2001:629:3200:95::1:%s/%s/g' % (template_id, ipv6), interfaces])
+    ex(['sed', '-i', 's/fd00::%s/%s/g' % (template_id, ipv6_priv), interfaces])
+
+    # Update munin config-file:
+    ex(['sed', '-i', 's/fd00::%s/%s/g' % (template_id, ipv6_priv), 'etc/munin/munin-node.conf'])
+
 def prepare_sshd(tid, id):
     log.info('Preparing SSH daemon')
     ex(['sed', '-i', 's/fc00::%s/fc00::%s/g' % (tid, id), 'etc/ssh/sshd_config'])
