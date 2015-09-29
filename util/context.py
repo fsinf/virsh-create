@@ -28,11 +28,11 @@ log = logging.getLogger(__name__)
 
 @contextmanager
 def gid(id):
-    if settings.DRY:
+    if not settings.DRY:
         old = os.getgid()
         os.setgid(id)
     yield
-    if settings.DRY:
+    if not settings.DRY:
         os.setgid(old)
 
 
