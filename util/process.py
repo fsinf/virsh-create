@@ -21,14 +21,85 @@ import logging
 import os
 import random
 
+from contextlib import contextmanager
+
 from util import settings
 from util.cli import chroot
 from util.cli import ex
-from util.context import gid, umask
+from util.context import gid, umask, setting
 from util.helpers import get_chroot_gid
 
 log = logging.getLogger(__name__)
 
+
+@contextmanager
+def mount(frm, lv_name, bootdisk, bootdisk_path):
+    if not settings.DRY:
+        os.makedirs(settings.CHROOT)
+
+    log.info('Detecting logical volumes')
+    with setting(SLEEP=3):
+        ex(['kpartx', '-s', '-a', bootdisk])  # Discover partitions on bootdisk
+        ex(['vgrename', 'vm_%s' % frm, lv_name])  # Rename volume group
+        ex(['vgchange', '-a', 'y', lv_name])  # Activate volume group
+
+    log.info('Mounting logical volumes...')
+    mounted = []
+    ex(['mount', os.path.join('/dev', lv_name, 'root'), settings.CHROOT])
+    mounted.append(settings.CHROOT)
+    for dir in ['boot', 'home', 'usr', 'var', 'tmp']:
+        dev = '/dev/%s/%s' % (lv_name, dir)
+        if os.path.exists(dev):
+            mytarget = os.path.join(settings.CHROOT, dir)
+            ex(['mount', dev, mytarget])
+            mounted.append(mytarget)
+
+    # mount dev and proc
+    log.info('Mounting /dev, /dev/pts, /proc, /sys')
+    pseudo_filesystems = (
+        ('sysfs', 'sysfs', os.path.join(settings.CHROOT, 'sys')),
+        ('devtmpfs', 'udev', os.path.join(settings.CHROOT, 'dev')),
+        ('devpts', 'devpts', os.path.join(settings.CHROOT, 'dev', 'pts')),
+        ('proc', 'proc', os.path.join(settings.CHROOT, 'proc')),
+    )
+    for typ, dev, target in pseudo_filesystems:
+        ex(['mount', '-t', typ, dev, target])
+        mounted.append(target)
+
+    # create symlink for grub
+    ex(['ln', '-s', bootdisk, bootdisk_path])
+
+    policy_d = 'usr/sbin/policy-rc.d'
+    log.debug('- echo -e "#!/bin/sh\\nexit 101" > %s', policy_d)
+    if not settings.DRY:
+        os.chdir(settings.CHROOT)  # just while we're at it :-)
+
+        with open(policy_d, 'w') as f:
+            f.write("#!/bin/sh\nexit 101")
+    ex(['chmod', 'a+rx', policy_d])
+
+    # execute code in context
+    yield
+
+    # remove files
+    ex(['rm', policy_d, bootdisk_path])
+
+    # chdir back to /root
+    if not settings.DRY:
+        os.chdir('/root')
+
+    # unmount filesystems
+    for mount in reversed(mounted):
+        ex(['umount', mount])
+
+    # deactivate volume group
+    with setting(SLEEP=3):
+        ex(['vgchange', '-a', 'n', lv_name])
+        ex(['kpartx', '-s', '-d', bootdisk])
+
+    if not settings.DRY:
+        log.debug('- rmdir %s', settings.CHROOT)
+        os.removedirs(settings.CHROOT)
 
 def update_macs(mac, mac_priv):
     log.info("Update MAC addresses")

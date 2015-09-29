@@ -25,7 +25,6 @@ import sys
 from libvirtpy.conn import conn
 from libvirtpy.constants import DOMAIN_STATUS_SHUTOFF
 
-from util import context
 from util import lvm
 from util import process
 from util import settings
@@ -181,92 +180,33 @@ if not settings.DRY:
 bootdisk = domain.getBootDisk()
 if not settings.DRY:
     os.makedirs(settings.CHROOT)
-mounted = []
-
-log.info('Detecting logical volumes')
-with context.setting(SLEEP=3):
-    ex(['kpartx', '-s', '-a', bootdisk])  # Discover partitions on bootdisk
-    ex(['vgrename', 'vm_%s' % args.frm, lv_name])  # Rename volume group
-    ex(['vgchange', '-a', 'y', lv_name])  # Activate volume group
-
-log.info('Mounting logical volumes...')
-ex(['mount', os.path.join('/dev', lv_name, 'root'), settings.CHROOT])
-mounted.append(settings.CHROOT)
-for dir in ['boot', 'home', 'usr', 'var', 'tmp']:
-    dev = '/dev/%s/%s' % (lv_name, dir)
-    if os.path.exists(dev):
-        mytarget = os.path.join(settings.CHROOT, dir)
-        ex(['mount', dev, mytarget])
-        mounted.append(mytarget)
-
-# mount dev and proc
-log.info('Mounting /dev, /dev/pts, /proc, /sys')
-pseudo_filesystems = (
-    ('sysfs', 'sysfs', os.path.join(settings.CHROOT, 'sys')),
-    ('devtmpfs', 'udev', os.path.join(settings.CHROOT, 'dev')),
-    ('devpts', 'devpts', os.path.join(settings.CHROOT, 'dev', 'pts')),
-    ('proc', 'proc', os.path.join(settings.CHROOT, 'proc')),
-)
-for typ, dev, target in pseudo_filesystems:
-    ex(['mount', '-t', typ, dev, target])
-    mounted.append(target)
 
 #####################
 # MODIFY FILESYSTEM #
 #####################
 sed_ex = 's/%s/%s/g' % (args.frm, args.name)
 
-# create a file that disables restarting of services:
-policy_d = 'usr/sbin/policy-rc.d'
-log.debug('- echo -e "#!/bin/sh\\nexit 101" > %s', policy_d)
-if not settings.DRY:
-    os.chdir(settings.CHROOT)  # just while we're at it :-)
+with process.mount(args.frm, lv_name, bootdisk, bootdisk_path):
+    # copy /etc/resolv.conf, so that e.g. apt-get update works
+    ex(['cp', '-S', '.backup', '-ba', '/etc/resolv.conf', 'etc/resolv.conf'])
 
-    with open(policy_d, 'w') as f:
-        f.write("#!/bin/sh\nexit 101")
-ex(['chmod', 'a+rx', policy_d])
+    # update hostname
+    log.info('Update hostname')
+    ex(['sed', '-i', sed_ex, 'etc/hostname'])
+    ex(['sed', '-i', sed_ex, 'etc/hosts'])
+    ex(['sed', '-i', sed_ex, 'etc/fstab'])
+    ex(['sed', '-i', sed_ex, 'etc/mailname'])
+    ex(['sed', '-i', sed_ex, 'etc/postfix/main.cf'])
 
-# create symlink for bootdisk named like it appears in the VM
-ex(['ln', '-s', bootdisk, bootdisk_path])
+    process.prepare_cga(args.frm, args.name)
+    process.update_ips(template_id, ipv4, ipv4_priv, ipv6, ipv6_priv)
+    process.update_macs(mac, mac_priv)
+    process.cleanup_homes()
+    process.prepare_sshd(template_id, args.id)
+    process.update_grub(sed_ex)
+    process.update_system(args.kind)
+    process.create_ssh_client_keys(args.name, ipv4, ipv6, ipv4_priv, ipv6_priv)
+    process.create_tls_cert(args.name)
 
-# copy /etc/resolv.conf, so that e.g. apt-get update works
-ex(['cp', '-S', '.backup', '-ba', '/etc/resolv.conf', 'etc/resolv.conf'])
-
-# update hostname
-log.info('Update hostname')
-ex(['sed', '-i', sed_ex, 'etc/hostname'])
-ex(['sed', '-i', sed_ex, 'etc/hosts'])
-ex(['sed', '-i', sed_ex, 'etc/fstab'])
-ex(['sed', '-i', sed_ex, 'etc/mailname'])
-ex(['sed', '-i', sed_ex, 'etc/postfix/main.cf'])
-
-process.prepare_cga(args.frm, args.name)
-process.update_ips(template_id, ipv4, ipv4_priv, ipv6, ipv6_priv)
-process.update_macs(mac, mac_priv)
-process.cleanup_homes()
-process.prepare_sshd(template_id, args.id)
-process.update_grub(sed_ex)
-process.update_system(args.kind)
-process.create_ssh_client_keys(args.name, ipv4, ipv6, ipv4_priv, ipv6_priv)
-process.create_tls_cert(args.name)
-
-###########
-# CLEANUP #
-###########
-log.info('Done, cleaning up.')
-ex(['rm', policy_d, bootdisk_path])
-chroot(['mv', '/etc/resolv.conf.backup', '/etc/resolv.conf'])
-
-if not settings.DRY:
-    os.chdir('/root')
-
-for mount in reversed(mounted):
-    ex(['umount', mount])
-
-with context.setting(SLEEP=3):
-    ex(['vgchange', '-a', 'n', lv_name])
-    ex(['kpartx', '-s', '-d', bootdisk])
-
-if not settings.DRY:
-    log.debug('- rmdir %s', settings.CHROOT)
-    os.removedirs(settings.CHROOT)
+    log.info('Done, cleaning up.')
+    chroot(['mv', '/etc/resolv.conf.backup', '/etc/resolv.conf'])
