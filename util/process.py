@@ -149,7 +149,7 @@ def create_tls_cert(name):
     # read certificate
     cert_content = ''
     line = ''
-    if settings.dry:
+    if settings.DRY:
         log.info('... reading public certificate')
     else:
         while line != '-----END CERTIFICATE-----':
