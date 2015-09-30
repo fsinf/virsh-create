@@ -155,13 +155,8 @@ def update_grub(sed_ex):
 
 def update_system(kind):
     log.info('Update system')
-    ex(['sed', '-i.backup', 's/http:\/\/%s.local/https:\/\/%s.fsinf.at/' % (kind, kind),
-        'etc/apt/sources.list'])
-    ex(['sed', '-i.backup', 's/apt.local/apt.fsinf.at/', 'etc/apt/sources.list.d/fsinf.list'])
     chroot(['apt-get', 'update'])
     chroot(['apt-get', '-y', 'dist-upgrade'])
-    ex(['mv', 'etc/apt/sources.list.backup', 'etc/apt/sources.list'])
-    ex(['mv', 'etc/apt/sources.list.d/fsinf.list.backup', 'etc/apt/sources.list.d/fsinf.list'])
 
 
 def create_ssh_client_keys(name, ipv4, ipv6, ipv4_priv, ipv6_priv):
