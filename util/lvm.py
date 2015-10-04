@@ -4,8 +4,8 @@ from collections import namedtuple
 
 from util.cli import ex
 
-LV = namedtuple('lv', ['name', 'vg', 'attr', 'size', 'pool', 'origin', 'data', 'move', 'log',
-                       'copy', 'convert'])
+LV = namedtuple('lv', ['name', 'vg', 'attr', 'size', 'pool', 'origin', 'data', 'meta', 'move',
+                       'log', 'copy', 'convert'])
 log = logging.getLogger(__name__)
 
 
