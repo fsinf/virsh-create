@@ -79,27 +79,29 @@ def mount(frm, lv_name, bootdisk, bootdisk_path):
     ex(['chmod', 'a+rx', policy_d])
 
     # execute code in context
-    yield
+    try:
+        yield
+    finally:
 
-    # remove files
-    ex(['rm', policy_d, bootdisk_path])
+        # remove files
+        ex(['rm', policy_d, bootdisk_path])
 
-    # chdir back to /root
-    if not settings.DRY:
-        os.chdir('/root')
+        # chdir back to /root
+        if not settings.DRY:
+            os.chdir('/root')
 
-    # unmount filesystems
-    for mount in reversed(mounted):
-        ex(['umount', mount])
+        # unmount filesystems
+        for mount in reversed(mounted):
+            ex(['umount', mount])
 
-    # deactivate volume group
-    with setting(SLEEP=3):
-        ex(['vgchange', '-a', 'n', lv_name])
-        ex(['kpartx', '-s', '-d', bootdisk])
+        # deactivate volume group
+        with setting(SLEEP=3):
+            ex(['vgchange', '-a', 'n', lv_name])
+            ex(['kpartx', '-s', '-d', bootdisk])
 
-    if not settings.DRY:
-        log.debug('- rmdir %s', settings.CHROOT)
-        os.removedirs(settings.CHROOT)
+        if not settings.DRY:
+            log.debug('- rmdir %s', settings.CHROOT)
+            os.removedirs(settings.CHROOT)
 
 def update_macs(mac, mac_priv):
     log.info("Update MAC addresses")
