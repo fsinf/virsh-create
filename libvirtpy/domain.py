@@ -171,6 +171,7 @@ class LibVirtDomainXML(LibVirtBase):
     def update_interface(self, source, mac, ip4, ip6):
         iface = self.get_interface(source)
         self.update_mac(iface, mac)
+        self.update_ip(iface, ip4, ip6)
 
     def update_mac(self, iface, mac):
         iface.find('mac').set('address', mac)
