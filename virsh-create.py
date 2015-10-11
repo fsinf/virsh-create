@@ -150,8 +150,8 @@ domain.vcpu = args.cpus
 domain.memory = int(args.mem * 1024 * 1024)
 domain.currentMemory = int(args.mem * 1024 * 1024)
 domain.vncport = vncport
-domain.fix_mac('br0', mac)
-domain.fix_mac('br1', mac_priv)
+domain.update_interface('br0', mac, ipv4, ipv6)
+domain.update_interface('br1', mac_priv, ipv4_priv, ipv6_priv)
 
 ##############
 # Copy disks #

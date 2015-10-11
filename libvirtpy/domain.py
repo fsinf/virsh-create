@@ -168,14 +168,27 @@ class LibVirtDomainXML(LibVirtBase):
         interfaces = self.xml.findall('devices/interface')
         return [i for i in interfaces if i.find('source[@bridge="%s"]' % source) is not None][0]
 
-    def fix_mac(self, source, mac):
+    def update_interface(self, source, mac, ip4, ip6):
         iface = self.get_interface(source)
+        self.update_mac(iface, mac)
+
+    def update_mac(self, iface, mac):
         iface.find('mac').set('address', mac)
 
         # set the filterref variable
         filterref = iface.find('filterref/parameter[@name="MAC"]')
         if filterref is not None:
             filterref.set('value', mac)
+
+    def update_ip(self, iface, ip4, ip6):
+        v4 = iface.find('filterref/parameter[@name="IP"]')
+        if v4 is not None:
+            v4.set('value', ip4)
+
+        v6 = iface.find('filterref/parameter[@name="IPV6"]')
+        if v6 is not None:
+            v6.set('value', ip6)
+
 
     def replaceDisk(self, old_path, new_path):
         elem = self.xml.find('devices/disk/source[@dev="%s"]' % old_path)
