@@ -54,7 +54,10 @@ parser.add_argument(
 args = parser.parse_args()
 
 # parse local machine dependent configuration
-config = ConfigParser.ConfigParser()
+config = ConfigParser.ConfigParser(defaults={
+    'transfer-from': '',
+    'transfer-to': '',
+})
 config.read('virsh-create.conf')
 vmhost_id = config.get('DEFAULT', 'vmhost_id')
 
