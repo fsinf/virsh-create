@@ -59,6 +59,7 @@ args = parser.parse_args()
 config = ConfigParser.ConfigParser(defaults={
     'transfer-from': '',
     'transfer-to': '',
+    'transfer-source': '',
 })
 config.read('virsh-create.conf')
 vmhost_id = config.get(args.section, 'vmhost_id')
@@ -168,9 +169,10 @@ for path in template.getDiskPaths():
 
     if transfer_from:
         transfer_to = config.get(args.section, 'transfer-to')
+        transfer_source = config.get(args.section, 'transfer-source')
         log.warn('Copy disk by executing on %s', transfer_from)
         log.warn("  dd if=%s bs=4096 | pv | gzip | ssh %s 'gzip -d | dd of=%s bs=4096'",
-                 path, transfer_to, new_path)
+                 transfer_source or path, transfer_to, new_path)
         log.warn("Press enter when done.")
         if not settings.DRY:
             raw_input()
