@@ -163,9 +163,19 @@ for path in template.getDiskPaths():
     # replace disk in template
     domain.replaceDisk(path, new_path)
 
-    # copy data
-    log.info("Copying LV %s to %s", path, new_path)
-    ex(['dd', 'if=%s' % path, 'of=%s' % new_path, 'bs=4M'])
+    transfer_from = config.get('DEFAULT', 'transfer-from')
+
+    if transfer_from:
+        transfer_to = config.get('DEFAULT', 'transfer-to')
+        log.warn('Copy disk by executing on %s', transfer_from)
+        log.warn("  dd if=%s bs=4096 | pv | gzip | ssh root@%s 'gzip -d | dd of=%s bs=4096'",
+                 path, transfer_to, new_path)
+        log.warn("Press enter when done.")
+        raw_input()
+    else:
+        # copy data from local volume
+        log.info("Copying LV %s to %s", path, new_path)
+        ex(['dd', 'if=%s' % path, 'of=%s' % new_path, 'bs=4M'])
 
 ############################
 # Define domain in libvirt #
