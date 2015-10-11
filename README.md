@@ -10,7 +10,7 @@ Installation
 If you want to install the script manually, you should create a virtualenv. The script requires
 lxml, so you need the following packages on a Debian based system:
 
-   apt-get install gcc git python-virtualenv libxml2-dev libvirt-dev libvirt-bin
+    apt-get install gcc git python-virtualenv libxml2-dev libvirt-dev libvirt-bin
 
 Then just clone the repository and install the dependencies.
 
