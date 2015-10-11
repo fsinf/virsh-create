@@ -42,11 +42,13 @@ parser.add_argument('--desc', default='',
 parser.add_argument('--kind', default='debian', choices=('debian', 'ubuntu', ),
                     help="Set to 'ubuntu' if this is a Ubuntu and not a Debian template.")
 parser.add_argument('--mem', default=1.0, type=float,
-                    help="Amount of Memory in GigaByte (Default: %(default)s))")
+                    help="Amount of Memory in GigaByte (Default: %(default)s).")
 parser.add_argument('--cpus', default=1, type=int,
                     help="Number of CPUs (Default: %(default)s)")
 parser.add_argument('-v', '--verbose', default=0, action="count",
                     help="Verbose output. Can be given up to three times to increase verbosity.")
+parser.add_argument('-s', '--section', default='DEFAULT',
+                    help="Use different section in config file (Default: %(default)s).")
 parser.add_argument('--dry', action='store_true', help="Dry-run, don't really do anything")
 parser.add_argument('name', help="Name of the new virtual machine")
 parser.add_argument(
@@ -59,7 +61,7 @@ config = ConfigParser.ConfigParser(defaults={
     'transfer-to': '',
 })
 config.read('virsh-create.conf')
-vmhost_id = config.get('DEFAULT', 'vmhost_id')
+vmhost_id = config.get(args.section, 'vmhost_id')
 
 # configure logging
 logging.basicConfig(
@@ -166,10 +168,10 @@ for path in template.getDiskPaths():
     # replace disk in template
     domain.replaceDisk(path, new_path)
 
-    transfer_from = config.get('DEFAULT', 'transfer-from')
+    transfer_from = config.get(args.section, 'transfer-from')
 
     if transfer_from:
-        transfer_to = config.get('DEFAULT', 'transfer-to')
+        transfer_to = config.get(args.section, 'transfer-to')
         log.warn('Copy disk by executing on %s', transfer_from)
         log.warn("  dd if=%s bs=4096 | pv | gzip | ssh root@%s 'gzip -d | dd of=%s bs=4096'",
                  path, transfer_to, new_path)
