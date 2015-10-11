@@ -1,3 +1,3 @@
-six==1.9.0
+six==1.10.0
 lxml==3.4.4
-libvirt-python==1.2.9
+libvirt-python==1.2.20
