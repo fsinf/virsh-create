@@ -62,6 +62,7 @@ config = ConfigParser.ConfigParser(defaults={
 })
 config.read('virsh-create.conf')
 vmhost_id = config.get(args.section, 'vmhost_id')
+transfer_from = config.get(args.section, 'transfer-from')
 
 # configure logging
 logging.basicConfig(
@@ -103,7 +104,7 @@ log.debug('Creating VM %s...', args.name)
 #########################
 # get template domain:
 template = conn.getDomain(name=args.frm)
-if template.status != DOMAIN_STATUS_SHUTOFF:
+if template.status != DOMAIN_STATUS_SHUTOFF and not transfer_from:
     log.error('Error: VM "%s" is not shut off', args.frm)
     sys.exit(1)
 template_id = template.domain_id  # i.e. 89.
@@ -167,8 +168,6 @@ for path in template.getDiskPaths():
 
     # replace disk in template
     domain.replaceDisk(path, new_path)
-
-    transfer_from = config.get(args.section, 'transfer-from')
 
     if transfer_from:
         transfer_to = config.get(args.section, 'transfer-to')
