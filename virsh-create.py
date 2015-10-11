@@ -173,7 +173,7 @@ for path in template.getDiskPaths():
     if transfer_from:
         transfer_to = config.get(args.section, 'transfer-to')
         log.warn('Copy disk by executing on %s', transfer_from)
-        log.warn("  dd if=%s bs=4096 | pv | gzip | ssh root@%s 'gzip -d | dd of=%s bs=4096'",
+        log.warn("  dd if=%s bs=4096 | pv | gzip | ssh %s 'gzip -d | dd of=%s bs=4096'",
                  path, transfer_to, new_path)
         log.warn("Press enter when done.")
         raw_input()
