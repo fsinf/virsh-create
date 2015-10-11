@@ -176,7 +176,8 @@ for path in template.getDiskPaths():
         log.warn("  dd if=%s bs=4096 | pv | gzip | ssh %s 'gzip -d | dd of=%s bs=4096'",
                  path, transfer_to, new_path)
         log.warn("Press enter when done.")
-        raw_input()
+        if not settings.DRY:
+            raw_input()
     else:
         # copy data from local volume
         log.info("Copying LV %s to %s", path, new_path)
