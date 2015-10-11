@@ -174,7 +174,7 @@ class LibVirtDomainXML(LibVirtBase):
 
         # set the filterref variable
         filterref = iface.find('filterref/parameter[@name="MAC"]')
-        if filterref:
+        if filterref is not None:
             filterref.set('value', mac)
 
     def replaceDisk(self, old_path, new_path):
