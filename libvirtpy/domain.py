@@ -166,7 +166,7 @@ class LibVirtDomainXML(LibVirtBase):
     def get_interface(self, source):
         """Get the XML element with the specified source."""
         interfaces = self.xml.findall('devices/interface')
-        return [i for i in interfaces if i.find('source[@bridge="%s"]' % source)][0]
+        return [i for i in interfaces if i.find('source[@bridge="%s"]' % source is not None)][0]
 
     def fix_mac(self, source, mac):
         iface = self.get_interface(source)
