@@ -190,12 +190,19 @@ class LibVirtDomainXML(LibVirtBase):
         elem.set('slot', hex(slot))
         elem.set('function', hex(func))
 
-    def fix_macs(self, id):
-        for elem in self.xml.findall('devices/interface/mac'):
-            fields = elem.get('address').split(':')
-            fields[-1] = str(id)
-            fields[-2] = str(id)
-            elem.set('address', ':'.join(fields))
+    def get_interface(self, source):
+        """Get the XML element with the specified source."""
+        interfaces = self.xml.findall('devices/interface')
+        return [i for i in interfaces if i.find('source[@bridge="%s"]' % source)][0]
+
+    def fix_mac(self, source, mac):
+        iface = self.get_interface(source)
+        iface.find('mac').set('address', mac)
+
+        # set the filterref variable
+        filterref = iface.find('filterref/parameter[@name="MAC"]')
+        if filterref:
+            filterref.set('value', mac)
 
     def replaceDisk(self, old_path, new_path):
         elem = self.xml.find('devices/disk/source[@dev="%s"]' % old_path)

@@ -150,7 +150,8 @@ domain.vcpu = args.cpus
 domain.memory = int(args.mem * 1024 * 1024)
 domain.currentMemory = int(args.mem * 1024 * 1024)
 domain.vncport = vncport
-domain.fix_macs(args.id)
+domain.set_mac('br0', mac)
+domain.set_mac('br1', mac_priv)
 
 # 2013-07-21: Virtual Functions are currently disabled
 #vf = conn.getVirtualFunction()
