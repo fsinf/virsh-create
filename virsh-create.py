@@ -153,10 +153,6 @@ domain.vncport = vncport
 domain.set_mac('br0', mac)
 domain.set_mac('br1', mac_priv)
 
-# 2013-07-21: Virtual Functions are currently disabled
-#vf = conn.getVirtualFunction()
-#domain.setVirtualFunction(*vf)
-
 ##############
 # Copy disks #
 ##############

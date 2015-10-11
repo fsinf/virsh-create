@@ -163,33 +163,6 @@ class LibVirtDomainXML(LibVirtBase):
             raise RuntimeError("Port out of range.")
         self.xml.find('devices/graphics[@type="vnc"]').set('port', str(value))
 
-    @property
-    def mac(self):
-        self.xml.find('devices/interface/mac').get('address')
-
-    @mac.setter
-    def mac(self, value):
-        self.xml.find('devices/interface/mac').set('address', value)
-
-    @property
-    def virtual_function(self):
-        elem = self.xml.find('devices/interface/source/address')
-        if elem is None:
-            return None
-
-        domain = int(elem.get('domain'), 16)
-        bus = int(elem.get('bus'), 16)
-        slot = int(elem.get('slot'), 16)
-        func = int(elem.get('function'), 16)
-        return domain, bus, slot, func
-
-    def setVirtualFunction(self, domain, bus, slot, func):
-        elem = self.xml.find('devices/interface/source/address')
-        elem.set('domain', hex(domain))
-        elem.set('bus', hex(bus))
-        elem.set('slot', hex(slot))
-        elem.set('function', hex(func))
-
     def get_interface(self, source):
         """Get the XML element with the specified source."""
         interfaces = self.xml.findall('devices/interface')
