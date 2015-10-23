@@ -168,11 +168,10 @@ def update_system(kind):
     chroot(['apt-get', '-y', 'dist-upgrade'])
 
 
-def create_ssh_client_keys(name, ipv4, ipv6, ipv4_priv, ipv6_priv):
+def create_ssh_client_keys(name):
     log.info('Generate SSH client keys')
     rsa, ed25519 = '/root/.ssh/id_rsa', '/root/.ssh/id_ed25519'
     rsa_pub, ed25519_pub = '%s.pub' % rsa, '%s.pub' % ed25519
-    ips = (ipv4, ipv6, ipv4_priv, ipv6_priv)
 
     # remove any prexisting SSH keys
     chroot(['rm', '-f', rsa, rsa_pub, ed25519, ed25519_pub])
@@ -181,9 +180,8 @@ def create_ssh_client_keys(name, ipv4, ipv6, ipv4_priv, ipv6_priv):
     chroot(['ssh-keygen', '-t', 'rsa', '-q', '-N', '', '-o', '-a', '100', '-b', '4096', '-f', rsa])
     chroot(['ssh-keygen', '-t', 'ed25519', '-q', '-N', '', '-o', '-a', '100', '-f', ed25519])
 
+    # Fix hostname
     for pub in [rsa_pub, ed25519_pub]:
-        # Add limiting options:
-        chroot(['sed', '-i', 's/^/source-address="%s,%s,%s,%s",no-x11-forwarding /' % ips, pub])
         chroot(['sed', '-i', 's/@[^@]*$/@%s/' % name, pub])  # fix hostname in public keys
 
 

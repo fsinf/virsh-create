@@ -216,7 +216,7 @@ with process.mount(args.frm, lv_name, bootdisk, bootdisk_path):
     process.prepare_sshd(template_id, args.id)
     process.update_grub(sed_ex)
     process.update_system(args.kind)
-    process.create_ssh_client_keys(args.name, ipv4, ipv6, ipv4_priv, ipv6_priv)
+    process.create_ssh_client_keys(args.name)
     key, pem = process.create_tls_cert(args.name)
     process.prepare_munin(ipv6_priv, key, pem)
 
