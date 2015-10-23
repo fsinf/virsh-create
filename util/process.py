@@ -138,8 +138,8 @@ def prepare_munin(ipv6_priv, key, pem):
     path = 'etc/munin/munin-node.conf'
     ex(['sed', '-i', 's/^host fd00::.*/host %s/g' % ipv6_priv, path])
     ex(['sed', '-i', 's/^#tls/tls/', path])
-    ex(['sed', '-i', 's/^tls_private_key.*/tls_private_key %s/' % key, path])
-    ex(['sed', '-i', 's/^tls_certificate.*/tls_certificate %s/' % pem, path])
+    ex(['sed', '-i', 's~^tls_private_key.*~tls_private_key %s~' % key, path])
+    ex(['sed', '-i', 's~^tls_certificate.*~tls_certificate %s~' % pem, path])
 
 
 def prepare_cga(frm, name):
