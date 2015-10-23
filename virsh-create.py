@@ -60,6 +60,8 @@ config = ConfigParser.ConfigParser(defaults={
     'transfer-from': '',
     'transfer-to': '',
     'transfer-source': '',
+    'bridge-ext': 'br0',
+    'bridge-int': 'br1',
 })
 config.read('virsh-create.conf')
 vmhost_id = config.get(args.section, 'vmhost_id')
@@ -151,8 +153,8 @@ domain.vcpu = args.cpus
 domain.memory = int(args.mem * 1024 * 1024)
 domain.currentMemory = int(args.mem * 1024 * 1024)
 domain.vncport = vncport
-domain.update_interface('br0', mac, ipv4, ipv6)
-domain.update_interface('br1', mac_priv, ipv4_priv, ipv6_priv)
+domain.update_interface(config.get(args.section, 'bridge-ext'), mac, ipv4, ipv6)
+domain.update_interface(config.get(args.section, 'bridge-int'), mac_priv, ipv4_priv, ipv6_priv)
 
 ##############
 # Copy disks #
