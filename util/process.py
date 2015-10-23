@@ -119,8 +119,6 @@ def update_ips(template_id, ipv4, ipv4_priv, ipv6, ipv6_priv):
     ex(['sed', '-i', 's/2001:629:3200:95::1:%s/%s/g' % (template_id, ipv6), eth0])
     ex(['sed', '-i', 's/fd00::%s/%s/g' % (template_id, ipv6_priv), eth1])
 
-    # Update munin config-file:
-    ex(['sed', '-i', 's/fd00::%s/%s/g' % (template_id, ipv6_priv), 'etc/munin/munin-node.conf'])
 
 def prepare_sshd(tid, id):
     log.info('Preparing SSH daemon')
@@ -133,6 +131,15 @@ def prepare_sshd(tid, id):
     log.info('ed25519 fingerprint: %s', ed25519_fp)
     ex(['ssh-keygen', '-t', 'rsa', '-b', '4096', '-f', 'etc/ssh/ssh_host_rsa_key', '-N', ''])
     log.info('rsa fingerprint: %s', ex(['ssh-keygen', '-lf', 'etc/ssh/ssh_host_rsa_key'])[0])
+
+
+def prepare_munin(ipv6_priv, key, pem):
+    log.info('Preparing munin-node')
+    path = 'etc/munin/munin-node.conf'
+    ex(['sed', '-i', 's/^host fd00::.*/host %s/g' % ipv6_priv, path])
+    ex(['sed', '-i', 's/^#tls/tls/', path])
+    ex(['sed', '-i', 's/^tls_private_key.*/tls_private_key %s/' % key, path])
+    ex(['sed', '-i', 's/^tls_certificate.*/tls_certificate %s/' % pem, path])
 
 
 def prepare_cga(frm, name):
@@ -241,3 +248,5 @@ def create_tls_cert(name):
 
         # remove CSR:
         os.remove(csr_path)
+
+    return key, pem
