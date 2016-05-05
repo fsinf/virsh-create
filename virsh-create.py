@@ -71,7 +71,7 @@ transfer_from = config.get(args.section, 'transfer-from')
 logging.basicConfig(
     format='[%(asctime)s] %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S',
-    level=logging.ERROR - args.verbose * 10 if args.verbose <= 3 else 30
+    level=logging.ERROR - (args.verbose * 10 if args.verbose <= 3 else 30)
 )
 
 # common configuration:
