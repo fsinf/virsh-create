@@ -219,7 +219,7 @@ def create_tls_cert(name):
         chroot(['openssl', 'genrsa', '-out', key, '4096'])
 
     chroot(['openssl', 'req', '-new', '-key', key, '-out', csr, '-utf8', '-batch', '-sha256', ])
-    log.critical('On enceladus, do:')
+    log.critical('On intns1, do:')
     log.critical('\t%s' % sign)
     csr_path = os.path.join(settings.CHROOT, csr.lstrip('/'))
     if settings.DRY:
