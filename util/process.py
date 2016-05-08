@@ -211,16 +211,14 @@ def create_tls_cert(name):
     key = '/etc/ssl/private/%s.local.key' % name
     pem = '/etc/ssl/public/%s.local.pem' % name
     csr = '/etc/ssl/%s.local.csr' % name
-    subject = '/C=AT/ST=Vienna/L=Vienna/CN=%s.local/' % name
     ssl_cert_gid = get_chroot_gid('ssl-cert')
 
-    sign = 'fsinf-ca-sign --alt=%s.local --alt=%s4.local --alt=%s6.local --watch=<your email>' % (
+    sign = 'fsinf-ca --alt=%s.local --alt=%s4.local --alt=%s6.local --watch=<your email>' % (
         name, name, name)
     with gid(ssl_cert_gid), umask(0277):
         chroot(['openssl', 'genrsa', '-out', key, '4096'])
 
-    chroot(['openssl', 'req', '-new', '-key', key, '-out', csr, '-utf8',
-            '-batch', '-sha256', '-subj', subject])
+    chroot(['openssl', 'req', '-new', '-key', key, '-out', csr, '-utf8', '-batch', '-sha256', ])
     log.critical('On enceladus, do:')
     log.critical('\t%s' % sign)
     csr_path = os.path.join(settings.CHROOT, csr.lstrip('/'))
