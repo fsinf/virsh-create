@@ -32,7 +32,6 @@ from util.cli import ex
 log = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser()
-# optional arguments:
 parser.add_argument('-f', '--from', default="jessie", metavar='VM', dest='frm',
                     help="Virtual machine to clone from (Default: %(default)s)")
 parser.add_argument('--desc', default='',
@@ -60,8 +59,10 @@ config = configparser.ConfigParser(defaults={
     'transfer-source': '',
     'bridge-ext': 'br0',
     'bridge-int': 'br1',
+    'vnc_port': '59%(guest_id)s',
 })
 config.read('virsh-create.conf')
+config[args.section]['guest_id'] = str(args.id)
 vmhost_id = config.get(args.section, 'vmhost_id')
 transfer_from = config.get(args.section, 'transfer-from')
 
@@ -80,13 +81,13 @@ settings.DRY = args.dry
 #######################
 # define some variables
 lv_name = 'vm_%s' % args.name
-mac = '02:25:90:%s:00:%s' % (vmhost_id, args.id)
-ipv4 = '128.130.95.%s' % args.id
-ipv6 = '2001:629:3200:95::1:%s' % args.id
-mac_priv = '02:25:90:%s:01:%s' % (vmhost_id, args.id)
-ipv4_priv = '192.168.1.%s' % args.id
-ipv6_priv = 'fd00::%s' % args.id
-vncport = int('59%s' % args.id)
+mac = config.get(args.section, 'public_mac')
+ipv4 = config.get(args.section, 'public_ip4')
+ipv6 = config.get(args.section, 'public_ip6')
+mac_priv = config.get(args.section, 'priv_mac')
+ipv4_priv = config.get(args.section, 'priv_ip4')
+ipv6_priv = config.get(args.section, 'priv_ip6')
+vnc_port = config.get(args.section, 'vnc_port')
 
 ######################
 # BASIC SANITY TESTS #
@@ -150,7 +151,7 @@ domain.description = args.desc
 domain.vcpu = args.cpus
 domain.memory = int(args.mem * 1024 * 1024)
 domain.currentMemory = int(args.mem * 1024 * 1024)
-domain.vncport = vncport
+domain.vncport = vnc_port
 domain.update_interface(config.get(args.section, 'bridge-ext'), mac, ipv4, ipv6)
 domain.update_interface(config.get(args.section, 'bridge-int'), mac_priv, ipv4_priv, ipv6_priv)
 
