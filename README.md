@@ -10,13 +10,18 @@ Installation
 If you want to install the script manually, you should create a virtualenv. The script requires
 lxml, so you need the following packages on a Debian based system:
 
-    apt-get install gcc git kpartx libpython2.7-dev python-virtualenv libxml2-dev \
+    apt-get install gcc git kpartx libpython3-dev python-virtualenv \
         libxslt1-dev libvirt-dev libvirt-bin pkg-config
+
+It is recommended to use the version of libvirt-python that comes with your distribution:
+
+    apt-cache showpkg python-libvirt
 
 Then just clone the repository and install the dependencies.
 
     git clone https://github.com/fsinf/virsh-create.git
-    virtualenv virsh-create
+    virtualenv -p /usr/bin/python3 virsh-create
+    virsh-create/bin/pip install libvirt-python==3.0.0  # This version is Debian Stretch
     virsh-create/bin/pip install -r requirements.txt
     virsh-create/bin/python virsh-create/virsh-create.py -h
 
