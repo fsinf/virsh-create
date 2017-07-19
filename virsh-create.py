@@ -57,8 +57,8 @@ config = configparser.ConfigParser(defaults={
     'transfer-from': '',
     'transfer-to': '',
     'transfer-source': '',
-    'bridge-ext': 'br0',
-    'bridge-int': 'br1',
+    'public_bridge': 'br0',
+    'priv_bridge': 'br1',
     'vnc_port': '59%(guest_id)s',
 })
 config.read('virsh-create.conf')
@@ -81,9 +81,11 @@ settings.DRY = args.dry
 #######################
 # define some variables
 lv_name = 'vm_%s' % args.name
+public_bridge = config.get(args.section, 'public_bridge')
 public_mac = config.get(args.section, 'public_mac')
 public_ip4 = config.get(args.section, 'public_ip4')
 public_ip6 = config.get(args.section, 'public_ip6')
+priv_bridge = config.get(args.section, 'priv_bridge')
 priv_mac = config.get(args.section, 'priv_mac')
 priv_ip4 = config.get(args.section, 'priv_ip4')
 priv_ip6 = config.get(args.section, 'priv_ip6')
@@ -152,8 +154,8 @@ domain.vcpu = args.cpus
 domain.memory = int(args.mem * 1024 * 1024)
 domain.currentMemory = int(args.mem * 1024 * 1024)
 domain.vncport = vnc_port
-domain.update_interface(config.get(args.section, 'bridge-ext'), public_mac, public_ip4, public_ip6)
-domain.update_interface(config.get(args.section, 'bridge-int'), priv_mac, priv_ip4, priv_ip6)
+domain.update_interface(public_bridge, public_mac, public_ip4, public_ip6)
+domain.update_interface(priv_bridge, priv_mac, priv_ip4, priv_ip6)
 
 ##############
 # Copy disks #
