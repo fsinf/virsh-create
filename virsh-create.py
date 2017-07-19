@@ -162,7 +162,7 @@ domain.description = args.desc
 domain.vcpu = args.cpus
 domain.memory = int(args.mem * 1024 * 1024)
 domain.currentMemory = int(args.mem * 1024 * 1024)
-domain.vncport = vnc_port
+domain.vncport = int(vnc_port)
 domain.update_interface(public_bridge, public_mac, public_ip4, public_ip6)
 domain.update_interface(priv_bridge, priv_mac, priv_ip4, priv_ip6)
 
