@@ -32,7 +32,7 @@ from util.cli import ex
 log = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-f', '--from', default="jessie", metavar='VM', dest='frm',
+parser.add_argument('-f', '--from', metavar='VM', dest='frm',
                     help="Virtual machine to clone from (Default: %(default)s)")
 parser.add_argument('--desc', default='',
                     help="Description for the new virtual machine")
@@ -54,6 +54,7 @@ args = parser.parse_args()
 
 # parse local machine dependent configuration
 config = configparser.ConfigParser(defaults={
+    'src_guest': 'stretch',
     'transfer-from': '',
     'transfer-to': '',
     'transfer-source': '',
@@ -63,6 +64,9 @@ config = configparser.ConfigParser(defaults={
 })
 config.read('virsh-create.conf')
 config[args.section]['guest_id'] = str(args.id)
+if args.frm:
+    config[args.section]['src_guest'] = args.frm
+
 host_id = config.get(args.section, 'host_id')
 transfer_from = config.get(args.section, 'transfer-from')
 
@@ -81,6 +85,7 @@ settings.DRY = args.dry
 #######################
 # define some variables
 lv_name = 'vm_%s' % args.name
+src_guest = config.get(args.section, 'src_guest')
 public_bridge = config.get(args.section, 'public_bridge')
 public_mac = config.get(args.section, 'public_mac')
 public_ip4 = config.get(args.section, 'public_ip4')
@@ -107,9 +112,9 @@ log.debug('Creating VM %s...', args.name)
 # LIBVIRT SANITY CHECKS #
 #########################
 # get template domain:
-template = conn.getDomain(name=args.frm)
+template = conn.getDomain(name=src_guest)
 if template.status != DOMAIN_STATUS_SHUTOFF and not transfer_from:
-    log.error('Error: VM "%s" is not shut off', args.frm)
+    log.error('Error: VM "%s" is not shut off', src_guest)
     sys.exit(1)
 template_id = template.domain_id  # i.e. 89.
 
@@ -204,10 +209,10 @@ if not settings.DRY:
 #####################
 # MODIFY FILESYSTEM #
 #####################
-sed_ex = 's/%s/%s/g' % (args.frm, args.name)
+sed_ex = 's/%s/%s/g' % (src_guest, args.name)
 
 bootdisk = domain.getBootDisk()
-with process.mount(args.frm, lv_name, bootdisk, bootdisk_path):
+with process.mount(src_guest, lv_name, bootdisk, bootdisk_path):
     # copy /etc/resolv.conf, so that e.g. apt-get update works
     ex(['cp', '-S', '.backup', '-ba', '/etc/resolv.conf', 'etc/resolv.conf'])
 
@@ -219,7 +224,7 @@ with process.mount(args.frm, lv_name, bootdisk, bootdisk_path):
     ex(['sed', '-i', sed_ex, 'etc/mailname'])
     ex(['sed', '-i', sed_ex, 'etc/postfix/main.cf'])
 
-    process.prepare_cga(args.frm, args.name)
+    process.prepare_cga(src_guest, args.name)
     process.update_ips(
         src_public_ip4=src_public_ip4,
         public_ip4=public_ip4,
