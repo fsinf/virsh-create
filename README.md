@@ -11,7 +11,7 @@ If you want to install the script manually, you should create a virtualenv. The 
 lxml, so you need the following packages on a Debian based system:
 
     apt-get install gcc git kpartx libpython3-dev python-virtualenv \
-        libxslt1-dev libvirt-dev libvirt-bin pkg-config
+        libxml2-dev libxslt1-dev libvirt-dev libvirt-bin pkg-config
 
 It is recommended to use the version of libvirt-python that comes with your distribution:
 
