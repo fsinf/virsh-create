@@ -215,7 +215,7 @@ def create_tls_cert(name):
 
     sign = 'fsinf-ca --alt=%s.local --alt=%s4.local --alt=%s6.local --watch=<your email>' % (
         name, name, name)
-    with gid(ssl_cert_gid), umask(0277):
+    with gid(ssl_cert_gid), umask(0o277):
         chroot(['openssl', 'genrsa', '-out', key, '4096'])
 
     chroot(['openssl', 'req', '-new', '-key', key, '-out', csr, '-utf8', '-batch', '-sha256', ])
@@ -236,7 +236,7 @@ def create_tls_cert(name):
         log.info('... reading public certificate')
     else:
         while line != '-----END CERTIFICATE-----':
-            line = raw_input().strip()
+            line = input().strip()
             cert_content += '%s\n' % line
 
         with open(os.path.join(settings.CHROOT, pem.lstrip('/')), 'w') as cert_file:
