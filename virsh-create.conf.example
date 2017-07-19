@@ -29,6 +29,12 @@ src_priv_ip6 = 2001:db8:b::%(template_id)s
 # VNC port the host will listen on
 #vnc_port = 59%(guest_id)s
 
+# Where the signed certificate can be obtained. For info-output only.
+#ca_host = ca.example.com
+
+# Serial of the CA that should sign this certificate. For info-output only.
+#ca_serial = ...
+
 ###################################
 # Copy template from another host #
 ###################################
