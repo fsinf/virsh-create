@@ -1,4 +1,7 @@
 [DEFAULT]
+# The default guest that the new guest should be cloned from. This guest must be known to libvirt.
+#src_guest = stretch
+
 # The ID of the VM host, usually e.g. the last byte if the IPv4 address. It is
 # used in the MAC addresses of the resulting VM.
 host_id = 10
