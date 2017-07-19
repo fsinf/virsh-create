@@ -63,7 +63,7 @@ config = configparser.ConfigParser(defaults={
 })
 config.read('virsh-create.conf')
 config[args.section]['guest_id'] = str(args.id)
-vmhost_id = config.get(args.section, 'vmhost_id')
+host_id = config.get(args.section, 'host_id')
 transfer_from = config.get(args.section, 'transfer-from')
 
 # configure logging
