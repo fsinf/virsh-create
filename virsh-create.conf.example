@@ -3,8 +3,25 @@
 # used in the MAC addresses of the resulting VM.
 host_id = 10
 
-# Gateway interface into the external network
-#bridge-int = br0
+# Settings for the external interface
+#public_bridge = br0
+public_mac = 00:53:00:%(host_id)s:00:%(guest_id)s
+public_ip4 = 198.51.100.%(guest_id)s
+public_ip6 = 2001:db8:a::1:%(guest_id)s
 
-# Gateway interface into the internal network
-#bridge-int = br1
+# Settings for the internal interface
+#public_bridge = br1
+priv_mac = 00:53:FF:%(host_id)s:01:%(guest_id)s
+priv_ip4 = 192.0.2.%(guest_id)s
+priv_ip6 = 2001:db8:b::%(guest_id)s
+
+# Same settings in the template VM:
+src_public_mac = 00:53:00:%(host_id)s:00:%(template_id)s
+src_public_ip4 = 198.51.100.%(template_id)s
+src_public_ip6 = 2001:db8:a::1:%(template_id)s
+src_priv_mac = 00:53:FF:%(host_id)s:01:%(template_id)s
+src_priv_ip4 = 192.0.2.%(template_id)s
+src_priv_ip6 = 2001:db8:b::%(template_id)s
+
+# VNC port the host will listen on
+#vnc_port = 59%(guest_id)s
