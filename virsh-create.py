@@ -47,6 +47,8 @@ parser.add_argument('-v', '--verbose', default=0, action="count",
 parser.add_argument('-s', '--section', default='DEFAULT',
                     help="Use different section in config file (Default: %(default)s).")
 parser.add_argument('--dry', action='store_true', help="Dry-run, don't really do anything")
+parser.add_arugment('--no-cert', action='store_false', default=True, dest='update_cert',
+                    help='Do not update TLS certificate.')
 parser.add_argument('name', help="Name of the new virtual machine")
 parser.add_argument(
     'id', type=int, help="Id of the virtual machine. Used for VNC-port, MAC-address and IP")
@@ -61,6 +63,8 @@ config = configparser.ConfigParser(defaults={
     'public_bridge': 'br0',
     'priv_bridge': 'br1',
     'vnc_port': '59%(guest_id)s',
+    'ca_host': '',
+    'ca_serial': '',
 })
 config.read('virsh-create.conf')
 config[args.section]['guest_id'] = str(args.id)
@@ -95,6 +99,8 @@ priv_mac = config.get(args.section, 'priv_mac')
 priv_ip4 = config.get(args.section, 'priv_ip4')
 priv_ip6 = config.get(args.section, 'priv_ip6')
 vnc_port = config.get(args.section, 'vnc_port')
+ca_host = config.get(args.section, 'ca_host')
+ca_serial = config.get(args.section, 'ca_serial')
 
 ######################
 # BASIC SANITY TESTS #
@@ -241,8 +247,12 @@ with process.mount(src_guest, lv_name, bootdisk, bootdisk_path):
     process.update_grub(sed_ex)
     process.update_system(args.kind)
     process.create_ssh_client_keys(args.name)
-    key, pem = process.create_tls_cert(args.name)
-    process.prepare_munin(src_priv_ip6, priv_ip6, key, pem)
+
+    if args.update_cert:
+        key, pem = process.create_tls_cert(args.name, ca_host, ca_serial)
+        process.prepare_munin_tls(key, pem)
+
+    process.prepare_munin(src_priv_ip6, priv_ip6)
 
     log.info('Done, cleaning up.')
     chroot(['mv', '/etc/resolv.conf.backup', '/etc/resolv.conf'])

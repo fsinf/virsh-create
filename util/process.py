@@ -133,10 +133,14 @@ def prepare_sshd(src_priv_ip6, priv_ip6):
     log.info('rsa fingerprint: %s', ex(['ssh-keygen', '-lf', 'etc/ssh/ssh_host_rsa_key'])[0])
 
 
-def prepare_munin(src_priv_ip6, priv_ip6, key, pem):
+def prepare_munin(src_priv_ip6, priv_ip6):
     log.info('Preparing munin-node')
     path = 'etc/munin/munin-node.conf'
     ex(['sed', '-i', 's/^host %s/host %s/g' % (src_priv_ip6, priv_ip6), path])
+
+
+def prepare_munin_tls(key, pem):
+    path = 'etc/munin/munin-node.conf'
     ex(['sed', '-i', 's/^#tls/tls/', path])
     ex(['sed', '-i', 's~^tls_private_key.*~tls_private_key %s~' % key, path])
     ex(['sed', '-i', 's~^tls_certificate.*~tls_certificate %s~' % pem, path])
@@ -206,20 +210,22 @@ def cleanup_homes():
                 os.remove(filepath)
 
 
-def create_tls_cert(name):
+def create_tls_cert(name, ca_host, ca_serial):
     log.info('Generate TLS certificate')
     key = '/etc/ssl/private/%s.local.key' % name
     pem = '/etc/ssl/public/%s.local.pem' % name
     csr = '/etc/ssl/%s.local.csr' % name
     ssl_cert_gid = get_chroot_gid('ssl-cert')
 
-    sign = 'fsinf-ca --alt=%s.local --alt=%s4.local --alt=%s6.local --watch=<your email>' % (
-        name, name, name)
+    sign = 'fsinf-ca --alt=%s.local --watch=<your email>' % name
+    if ca_serial:
+        sign += ' --ca=%s' % ca_serial
+
     with gid(ssl_cert_gid), umask(0o277):
         chroot(['openssl', 'genrsa', '-out', key, '4096'])
 
     chroot(['openssl', 'req', '-new', '-key', key, '-out', csr, '-utf8', '-batch', '-sha256', ])
-    log.critical('On intns1, do:')
+    log.critical('On %s, do:' % ca_host)
     log.critical('\t%s' % sign)
     csr_path = os.path.join(settings.CHROOT, csr.lstrip('/'))
     if settings.DRY:
