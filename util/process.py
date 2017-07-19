@@ -120,9 +120,9 @@ def update_ips(*, src_public_ip4, public_ip4, src_priv_ip4, priv_ip4, src_public
     ex(['sed', '-i', 's/%s/%s/g' % (src_priv_ip6, priv_ip6), eth1])
 
 
-def prepare_sshd(tid, priv_ip6):
+def prepare_sshd(src_priv_ip6, priv_ip6):
     log.info('Preparing SSH daemon')
-    ex(['sed', '-i', 's/fd00::%s/%s/g' % (tid, priv_ip6), 'etc/ssh/sshd_config'])
+    ex(['sed', '-i', 's/%s/%s/g' % (src_priv_ip6, priv_ip6), 'etc/ssh/sshd_config'])
     log.debug('- rm /etc/ssh/ssh_host_*')
     ex(['rm'] + glob.glob('etc/ssh/ssh_host_*'), quiet=True)
     ex(['ssh-keygen', '-t', 'ed25519', '-f', 'etc/ssh/ssh_host_ed25519_key', '-N', ''])
@@ -133,10 +133,10 @@ def prepare_sshd(tid, priv_ip6):
     log.info('rsa fingerprint: %s', ex(['ssh-keygen', '-lf', 'etc/ssh/ssh_host_rsa_key'])[0])
 
 
-def prepare_munin(priv_ip6, key, pem):
+def prepare_munin(src_priv_ip6, priv_ip6, key, pem):
     log.info('Preparing munin-node')
     path = 'etc/munin/munin-node.conf'
-    ex(['sed', '-i', 's/^host fd00::.*/host %s/g' % priv_ip6, path])
+    ex(['sed', '-i', 's/^host %s/host %s/g' % (src_priv_ip6, priv_ip6), path])
     ex(['sed', '-i', 's/^#tls/tls/', path])
     ex(['sed', '-i', 's~^tls_private_key.*~tls_private_key %s~' % key, path])
     ex(['sed', '-i', 's~^tls_certificate.*~tls_certificate %s~' % pem, path])
