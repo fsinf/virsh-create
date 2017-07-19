@@ -25,3 +25,20 @@ src_priv_ip6 = 2001:db8:b::%(template_id)s
 
 # VNC port the host will listen on
 #vnc_port = 59%(guest_id)s
+
+###################################
+# Copy template from another host #
+###################################
+# You can optionally copy the template from another host. The following directives are used only
+# for outputting help to the user. The script will output a command assuming that the source host
+# has SSH access to the current host that will copy the Logical Volume. The libvirt host is still
+# expected to be present locally.
+
+# Human readable name of the host
+#transfer-from = example-host
+
+# Hostname where the current host is reachable from the other host
+#transfer-to = dest-host
+
+# LV path on the source host, defaults to the same path as the local LV
+#transfer-source = /dev/mapper/...
