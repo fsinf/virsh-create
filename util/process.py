@@ -109,19 +109,19 @@ def update_macs(mac, mac_priv):
     ex(['sed', '-i', '/NAME="eth1"/s/ATTR{address}=="[^"]*"/%s/g' % mac_priv, rules])
 
 
-def update_ips(template_id, ipv4, ipv4_priv, ipv6, ipv6_priv):
+def update_ips(template_id, public_ip4, priv_ip4, public_ip6, priv_ip6):
     log.info('Update IP addresses')
     eth0 = 'etc/network/interfaces.d/eth0'
     eth1 = 'etc/network/interfaces.d/eth1'
-    ex(['sed', '-i', 's/128.130.95.%s/%s/g' % (template_id, ipv4), eth0])
-    ex(['sed', '-i', 's/192.168.1.%s/%s/g' % (template_id, ipv4_priv), eth1])
-    ex(['sed', '-i', 's/2001:629:3200:95::1:%s/%s/g' % (template_id, ipv6), eth0])
-    ex(['sed', '-i', 's/fd00::%s/%s/g' % (template_id, ipv6_priv), eth1])
+    ex(['sed', '-i', 's/128.130.95.%s/%s/g' % (template_id, public_ip4), eth0])
+    ex(['sed', '-i', 's/192.168.1.%s/%s/g' % (template_id, priv_ip4), eth1])
+    ex(['sed', '-i', 's/2001:629:3200:95::1:%s/%s/g' % (template_id, public_ip6), eth0])
+    ex(['sed', '-i', 's/fd00::%s/%s/g' % (template_id, priv_ip6), eth1])
 
 
-def prepare_sshd(tid, id):
+def prepare_sshd(tid, priv_ip6):
     log.info('Preparing SSH daemon')
-    ex(['sed', '-i', 's/fd00::%s/fd00::%s/g' % (tid, id), 'etc/ssh/sshd_config'])
+    ex(['sed', '-i', 's/fd00::%s/%s/g' % (tid, priv_ip6), 'etc/ssh/sshd_config'])
     log.debug('- rm /etc/ssh/ssh_host_*')
     ex(['rm'] + glob.glob('etc/ssh/ssh_host_*'), quiet=True)
     ex(['ssh-keygen', '-t', 'ed25519', '-f', 'etc/ssh/ssh_host_ed25519_key', '-N', ''])
@@ -132,10 +132,10 @@ def prepare_sshd(tid, id):
     log.info('rsa fingerprint: %s', ex(['ssh-keygen', '-lf', 'etc/ssh/ssh_host_rsa_key'])[0])
 
 
-def prepare_munin(ipv6_priv, key, pem):
+def prepare_munin(priv_ip6, key, pem):
     log.info('Preparing munin-node')
     path = 'etc/munin/munin-node.conf'
-    ex(['sed', '-i', 's/^host fd00::.*/host %s/g' % ipv6_priv, path])
+    ex(['sed', '-i', 's/^host fd00::.*/host %s/g' % priv_ip6, path])
     ex(['sed', '-i', 's/^#tls/tls/', path])
     ex(['sed', '-i', 's~^tls_private_key.*~tls_private_key %s~' % key, path])
     ex(['sed', '-i', 's~^tls_certificate.*~tls_certificate %s~' % pem, path])

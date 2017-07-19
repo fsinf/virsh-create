@@ -214,7 +214,7 @@ with process.mount(args.frm, lv_name, bootdisk, bootdisk_path):
     process.update_ips(template_id, public_ip4, priv_ip4, public_ip6, priv_ip6)
     process.update_macs(public_mac, priv_mac)
     process.cleanup_homes()
-    process.prepare_sshd(template_id, args.id)
+    process.prepare_sshd(template_id, priv_ip6)
     process.update_grub(sed_ex)
     process.update_system(args.kind)
     process.create_ssh_client_keys(args.name)
