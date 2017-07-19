@@ -47,7 +47,7 @@ parser.add_argument('-v', '--verbose', default=0, action="count",
 parser.add_argument('-s', '--section', default='DEFAULT',
                     help="Use different section in config file (Default: %(default)s).")
 parser.add_argument('--dry', action='store_true', help="Dry-run, don't really do anything")
-parser.add_arugment('--no-cert', action='store_false', default=True, dest='update_cert',
+parser.add_argument('--no-cert', action='store_false', default=True, dest='update_cert',
                     help='Do not update TLS certificate.')
 parser.add_argument('name', help="Name of the new virtual machine")
 parser.add_argument(
