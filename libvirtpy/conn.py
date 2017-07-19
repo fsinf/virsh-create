@@ -74,7 +74,8 @@ class LibVirtConnection(object):
         return list(available)[0]
 
     def loadXML(self, domain_xml):
-        domain = self._conn.defineXML(etree.tostring(domain_xml))
+        domain = self._conn.defineXML(etree.tostring(domain_xml).decode('utf-8'))
         return LibVirtDomain(self, domain=domain)
+
 
 conn = LibVirtConnection(None)
