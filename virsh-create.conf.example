@@ -1,0 +1,10 @@
+[DEFAULT]
+# The ID of the VM host, usually e.g. the last byte if the IPv4 address. It is
+# used in the MAC addresses of the resulting VM.
+vmhost_id = 10
+
+# Gateway interface into the external network
+#bridge-int = br0
+
+# Gateway interface into the internal network
+#bridge-int = br1
