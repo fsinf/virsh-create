@@ -125,6 +125,7 @@ if os.path.lexists(bootdisk_path):
     sys.exit(1)
 
 # get some variables depending on the run-time template id
+config[args.section]['template_id'] = template_id
 src_public_mac = config.get(args.section, 'src_public_mac')
 src_public_ip4 = config.get(args.section, 'src_public_ip4')
 src_public_ip6 = config.get(args.section, 'src_public_ip6')
