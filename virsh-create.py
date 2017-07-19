@@ -20,8 +20,8 @@ import logging
 import os
 import sys
 
-#from libvirtpy.conn import conn
-#from libvirtpy.constants import DOMAIN_STATUS_SHUTOFF
+from libvirtpy.conn import conn
+from libvirtpy.constants import DOMAIN_STATUS_SHUTOFF
 
 from util import lvm
 from util import process
