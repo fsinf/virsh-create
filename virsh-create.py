@@ -3,20 +3,18 @@
 #
 # This file is part of virsh-create (https://github.com/fsinf/virsh-create).
 #
-# virsh-create is free software: you can redistribute it and/or modify it under the terms of the
-# GNU General Public License as published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
+# virsh-create is free software: you can redistribute it and/or modify it under the terms of the GNU General
+# Public License as published by the Free Software Foundation, either version 3 of the License, or (at your
+# option) any later version.
 #
-# virsh-create is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
-# even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# General Public License for more details.
+# virsh-create is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+# for more details.
 #
-# You should have received a copy of the GNU General Public License along with virsh-create.  If
-# not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License along with virsh-create. If not, see
+# <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
-
-import ConfigParser
+import configparser
 import argparse
 import logging
 import os
@@ -56,7 +54,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 # parse local machine dependent configuration
-config = ConfigParser.ConfigParser(defaults={
+config = configparser.ConfigParser(defaults={
     'transfer-from': '',
     'transfer-to': '',
     'transfer-source': '',
@@ -177,7 +175,7 @@ for path in template.getDiskPaths():
                  transfer_source or path, transfer_to, new_path)
         log.warn("Press enter when done.")
         if not settings.DRY:
-            raw_input()
+            input()
     else:
         # copy data from local volume
         log.info("Copying LV %s to %s", path, new_path)
