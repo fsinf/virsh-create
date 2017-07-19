@@ -109,14 +109,15 @@ def update_macs(mac, mac_priv):
     ex(['sed', '-i', '/NAME="eth1"/s/ATTR{address}=="[^"]*"/%s/g' % mac_priv, rules])
 
 
-def update_ips(template_id, public_ip4, priv_ip4, public_ip6, priv_ip6):
+def update_ips(*, src_public_ip4, public_ip4, src_priv_ip4, priv_ip4, src_public_ip6,
+               public_ip6, src_priv_ip6, priv_ip6):
     log.info('Update IP addresses')
     eth0 = 'etc/network/interfaces.d/eth0'
     eth1 = 'etc/network/interfaces.d/eth1'
-    ex(['sed', '-i', 's/128.130.95.%s/%s/g' % (template_id, public_ip4), eth0])
-    ex(['sed', '-i', 's/192.168.1.%s/%s/g' % (template_id, priv_ip4), eth1])
-    ex(['sed', '-i', 's/2001:629:3200:95::1:%s/%s/g' % (template_id, public_ip6), eth0])
-    ex(['sed', '-i', 's/fd00::%s/%s/g' % (template_id, priv_ip6), eth1])
+    ex(['sed', '-i', 's/%s/%s/g' % (src_public_ip4, public_ip4), eth0])
+    ex(['sed', '-i', 's/%s/%s/g' % (src_priv_ip4, priv_ip4), eth1])
+    ex(['sed', '-i', 's/%s/%s/g' % (src_public_ip6, public_ip6), eth0])
+    ex(['sed', '-i', 's/%s/%s/g' % (src_priv_ip6, priv_ip6), eth1])
 
 
 def prepare_sshd(tid, priv_ip6):

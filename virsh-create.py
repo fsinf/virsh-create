@@ -124,6 +124,14 @@ if os.path.lexists(bootdisk_path):
     log.error("Error: %s already exists", bootdisk_path)
     sys.exit(1)
 
+# get some variables depending on the run-time template id
+src_public_mac = config.get(args.section, 'src_public_mac')
+src_public_ip4 = config.get(args.section, 'src_public_ip4')
+src_public_ip6 = config.get(args.section, 'src_public_ip6')
+src_priv_mac = config.get(args.section, 'src_priv_mac')
+src_priv_ip4 = config.get(args.section, 'src_priv_ip4')
+src_priv_ip6 = config.get(args.section, 'src_priv_ip6')
+
 ######################
 # LVM SANITIY CHECKS #
 ######################
@@ -211,7 +219,16 @@ with process.mount(args.frm, lv_name, bootdisk, bootdisk_path):
     ex(['sed', '-i', sed_ex, 'etc/postfix/main.cf'])
 
     process.prepare_cga(args.frm, args.name)
-    process.update_ips(template_id, public_ip4, priv_ip4, public_ip6, priv_ip6)
+    process.update_ips(
+        src_public_ip4=src_public_ip4,
+        public_ip4=public_ip4,
+        src_priv_ip4=src_priv_ip4,
+        priv_ip4=priv_ip4,
+        src_public_ip6=src_public_ip6,
+        public_ip6=public_ip6,
+        src_priv_ip6=src_priv_ip6,
+        priv_ip6=priv_ip6,
+    )
     process.update_macs(public_mac, priv_mac)
     process.cleanup_homes()
     process.prepare_sshd(template_id, priv_ip6)
