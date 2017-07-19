@@ -81,12 +81,12 @@ settings.DRY = args.dry
 #######################
 # define some variables
 lv_name = 'vm_%s' % args.name
-mac = config.get(args.section, 'public_mac')
-ipv4 = config.get(args.section, 'public_ip4')
-ipv6 = config.get(args.section, 'public_ip6')
-mac_priv = config.get(args.section, 'priv_mac')
-ipv4_priv = config.get(args.section, 'priv_ip4')
-ipv6_priv = config.get(args.section, 'priv_ip6')
+public_mac = config.get(args.section, 'public_mac')
+public_ip4 = config.get(args.section, 'public_ip4')
+public_ip6 = config.get(args.section, 'public_ip6')
+priv_mac = config.get(args.section, 'priv_mac')
+priv_ip4 = config.get(args.section, 'priv_ip4')
+priv_ip6 = config.get(args.section, 'priv_ip6')
 vnc_port = config.get(args.section, 'vnc_port')
 
 ######################
@@ -152,8 +152,8 @@ domain.vcpu = args.cpus
 domain.memory = int(args.mem * 1024 * 1024)
 domain.currentMemory = int(args.mem * 1024 * 1024)
 domain.vncport = vnc_port
-domain.update_interface(config.get(args.section, 'bridge-ext'), mac, ipv4, ipv6)
-domain.update_interface(config.get(args.section, 'bridge-int'), mac_priv, ipv4_priv, ipv6_priv)
+domain.update_interface(config.get(args.section, 'bridge-ext'), public_mac, public_ip4, public_ip6)
+domain.update_interface(config.get(args.section, 'bridge-int'), priv_mac, priv_ip4, priv_ip6)
 
 ##############
 # Copy disks #
@@ -209,15 +209,15 @@ with process.mount(args.frm, lv_name, bootdisk, bootdisk_path):
     ex(['sed', '-i', sed_ex, 'etc/postfix/main.cf'])
 
     process.prepare_cga(args.frm, args.name)
-    process.update_ips(template_id, ipv4, ipv4_priv, ipv6, ipv6_priv)
-    process.update_macs(mac, mac_priv)
+    process.update_ips(template_id, public_ip4, priv_ip4, public_ip6, priv_ip6)
+    process.update_macs(public_mac, priv_mac)
     process.cleanup_homes()
     process.prepare_sshd(template_id, args.id)
     process.update_grub(sed_ex)
     process.update_system(args.kind)
     process.create_ssh_client_keys(args.name)
     key, pem = process.create_tls_cert(args.name)
-    process.prepare_munin(ipv6_priv, key, pem)
+    process.prepare_munin(priv_ip6, key, pem)
 
     log.info('Done, cleaning up.')
     chroot(['mv', '/etc/resolv.conf.backup', '/etc/resolv.conf'])
