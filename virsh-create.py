@@ -20,8 +20,8 @@ import logging
 import os
 import sys
 
-from libvirtpy.conn import conn
-from libvirtpy.constants import DOMAIN_STATUS_SHUTOFF
+#from libvirtpy.conn import conn
+#from libvirtpy.constants import DOMAIN_STATUS_SHUTOFF
 
 from util import lvm
 from util import process
@@ -49,6 +49,8 @@ parser.add_argument('-s', '--section', default='DEFAULT',
 parser.add_argument('--dry', action='store_true', help="Dry-run, don't really do anything")
 parser.add_argument('--no-cert', action='store_false', default=True, dest='update_cert',
                     help='Do not update TLS certificate.')
+parser.add_argument('--extra', action='append', metavar='PKG',
+                    help='Install extra Debian packages, may be given multiple times.')
 parser.add_argument('name', help="Name of the new virtual machine")
 parser.add_argument(
     'id', type=int, help="Id of the virtual machine. Used for VNC-port, MAC-address and IP")
@@ -245,7 +247,10 @@ with process.mount(src_guest, lv_name, bootdisk, bootdisk_path):
     process.cleanup_homes()
     process.prepare_sshd(src_priv_ip6, priv_ip6)
     process.update_grub(sed_ex)
-    process.update_system(args.kind)
+    process.update_system()
+    if args.extra:
+        process.install_extra(args.extra)
+
     process.create_ssh_client_keys(args.name)
 
     if args.update_cert:

@@ -166,10 +166,15 @@ def update_grub(sed_ex):
     chroot(['update-initramfs', '-u', '-k', 'all'])
 
 
-def update_system(kind):
+def update_system():
     log.info('Update system')
     chroot(['apt-get', 'update'])
     chroot(['apt-get', '-y', 'dist-upgrade'])
+
+
+def install_extra(extra):
+    log.info('Installing extra packages')
+    chroot(['apt-get', 'install', '-y', ] + extra)
 
 
 def create_ssh_client_keys(name):
