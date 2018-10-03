@@ -222,7 +222,7 @@ def create_tls_cert(name, ca_host, ca_serial):
     csr = '/etc/ssl/%s.local.csr' % name
     ssl_cert_gid = get_chroot_gid('ssl-cert')
 
-    sign = 'fsinf-ca --alt=%s.local --watch=<your email>' % name
+    sign = 'fsinf-ca sign_cert --alt=%s.local --watch=<your email>' % name
     if ca_serial:
         sign += ' --ca=%s' % ca_serial
 
