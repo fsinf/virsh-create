@@ -52,6 +52,19 @@ def mount(frm, lv_name, bootdisk, bootdisk_path):
             ex(['mount', dev, mytarget])
             mounted.append(mytarget)
 
+    # mount boot if on separate partition / was not mounted before
+    if not 'boot' in mounted:
+        # just try the first partition
+        mappings, _ = ex(['kpartx', '-l', bootdisk])
+        first_partition = str(mappings, 'utf-8').split(" ")[0]
+        first_partition_path = "/dev/mapper/{}".format(first_partition)
+        mytarget = os.path.join(settings.CHROOT, 'boot')
+        try:
+            ex(['mount', first_partition_path, mytarget])
+            mounted.append(mytarget)
+        except Exception:
+            log.warning("Could not mount boot")
+
     # mount dev and proc
     log.info('Mounting /dev, /dev/pts, /proc, /sys')
     pseudo_filesystems = (
@@ -105,8 +118,8 @@ def mount(frm, lv_name, bootdisk, bootdisk_path):
 def update_macs(mac, mac_priv):
     log.info("Update MAC addresses")
     rules = 'etc/udev/rules.d/70-persistent-net.rules'
-    ex(['sed', '-i', '/NAME="eth0"/s/ATTR{address}=="[^"]*"/%s/g' % mac, rules])
-    ex(['sed', '-i', '/NAME="eth1"/s/ATTR{address}=="[^"]*"/%s/g' % mac_priv, rules])
+    ex(['sed', '-i', '/NAME="eth0"/s/ATTR{address}=="[^"]*"/ATTR{address}=="%s"/g' % mac, rules])
+    ex(['sed', '-i', '/NAME="eth1"/s/ATTR{address}=="[^"]*"/ATTR{address}=="%s"/g' % mac_priv, rules])
 
 
 def update_ips(*, src_public_ip4, public_ip4, src_priv_ip4, priv_ip4, src_public_ip6,
