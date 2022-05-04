@@ -135,7 +135,7 @@ def update_ips(*, src_public_ip4, public_ip4, src_priv_ip4, priv_ip4, src_public
 
 def prepare_sshd(src_priv_ip6, priv_ip6):
     log.info('Preparing SSH daemon')
-    ex(['sed', '-i', 's/%s/%s/g' % (src_priv_ip6, priv_ip6), 'etc/ssh/sshd_config'])
+    ex(['sed', '-i', 's/%s/%s/g' % (src_priv_ip6, priv_ip6), 'etc/ssh/sshd_config.d/local.conf'])
     log.debug('- rm /etc/ssh/ssh_host_*')
     ex(['rm'] + glob.glob('etc/ssh/ssh_host_*'), quiet=True)
     ex(['ssh-keygen', '-t', 'ed25519', '-f', 'etc/ssh/ssh_host_ed25519_key', '-N', ''])
